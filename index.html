@@ -7,11 +7,19 @@
   <meta name="theme-color" content="#0f172a" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <title>RB RailSynthese</title>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="RB RailSynthèse" />
+  <title>RB RailSynthèse</title>
+
+  <!-- Liens PWA obligatoires pour l'installation Android / Samsung -->
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png" />
+  <link rel="apple-touch-icon" href="./icon-192.png" />
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <style>
     body {
@@ -27,6 +35,58 @@
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen pb-24">
+
+  <!-- BANNIERE D'INSTALLATION NATIVE ANDROID -->
+  <div id="pwa-install-banner" class="no-print hidden bg-emerald-950 border-b border-emerald-700 px-4 py-2.5 flex items-center justify-between gap-2">
+    <div class="flex items-center gap-2.5">
+      <div class="w-7 h-7 rounded-lg bg-amber-500 text-slate-950 font-black text-xs flex items-center justify-center shrink-0">RS</div>
+      <div class="text-xs text-emerald-100 leading-tight">
+        <strong>Installer RB RailSynth&egrave;se</strong> sur votre t&eacute;l&eacute;phone (vraie application plein &eacute;cran)
+      </div>
+    </div>
+    <button onclick="triggerPwaInstall()" class="px-3 py-1.5 rounded-xl bg-emerald-500 text-slate-950 font-bold text-xs shrink-0 shadow">
+      Installer
+    </button>
+  </div>
+
+  <!-- FENETRE MODALE QR CODE POUR PARTAGER AUX COLLEGUES -->
+  <div id="qr-modal" class="no-print hidden fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4 text-center">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-amber-500 text-slate-950 font-black text-xs flex items-center justify-center">RS</div>
+          <h3 class="text-sm font-bold text-white">Partager RB RailSynth&egrave;se</h3>
+        </div>
+        <button onclick="closeQrModal()" class="text-slate-400 hover:text-white font-bold text-xl leading-none">&times;</button>
+      </div>
+
+      <p class="text-xs text-slate-300 leading-relaxed">
+        Faites scanner ce QR Code par un coll&egrave;gue avec l'appareil photo de son t&eacute;l&eacute;phone pour qu'il ouvre et installe l'application :
+      </p>
+
+      <!-- Zone d'affichage du QR Code sur fond blanc -->
+      <div class="bg-white p-4 rounded-2xl inline-flex items-center justify-center mx-auto shadow-inner">
+        <div id="qr-code-canvas" class="flex items-center justify-center"></div>
+      </div>
+
+      <div class="text-left space-y-1.5">
+        <label class="block text-[10px] font-bold uppercase text-amber-400">Lien de l'application (modifiable si besoin) :</label>
+        <div class="flex gap-1.5">
+          <input type="text" id="qr-url-input" oninput="updateQrUrl(this.value)" placeholder="https://votre-nom.github.io/rb-railsynthese/" class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-mono text-white focus:border-amber-500 focus:outline-none" />
+          <button onclick="copyShareUrl()" class="px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-xs font-bold text-amber-300 shrink-0">Copier</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 pt-1">
+        <button onclick="shareAppNative()" class="py-2.5 px-3 rounded-xl bg-amber-500 text-slate-950 text-xs font-bold shadow">
+          Envoyer le lien
+        </button>
+        <button onclick="closeQrModal()" class="py-2.5 px-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 text-xs font-bold">
+          Fermer
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- FENETRE MODALE DE COLLAGE UNIVERSEL (PHOTO / PDF / TEXTE) -->
   <div id="paste-modal" class="no-print hidden fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
@@ -65,7 +125,6 @@
   <div id="new-prestation-modal" class="no-print hidden fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4">
       
-      <!-- ETAPE 1 : Confirmation anti-distraction -->
       <div id="modal-step-1" class="space-y-4">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 font-bold">?</div>
@@ -81,7 +140,6 @@
         </div>
       </div>
 
-      <!-- ETAPE 2 : Proposition d'enregistrement si des taches/documents sont presents -->
       <div id="modal-step-2" class="hidden space-y-3">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 font-bold">!</div>
@@ -103,13 +161,13 @@
   </div>
 
   <!-- BARRE SUPERIEURE MOBILE -->
-  <header class="no-print sticky top-0 z-30 bg-slate-900/95 backdrop-blur border-b border-slate-800 px-4 py-2.5 flex items-center justify-between">
+  <header class="no-print sticky top-0 z-30 bg-slate-900/95 backdrop-blur border-b border-slate-800 px-3.5 py-2.5 flex items-center justify-between">
     <div class="flex items-center gap-2.5">
       <div class="w-8 h-8 rounded-xl bg-amber-500 flex items-center justify-center text-slate-950 font-black text-sm shadow">
         RS
       </div>
       <div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1.5">
           <h1 class="text-sm font-bold text-white leading-tight">RB RailSynth&egrave;se</h1>
           <span id="autosave-indicator" class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800/60 font-medium">Sauvegard&eacute;</span>
         </div>
@@ -117,11 +175,19 @@
       </div>
     </div>
 
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-1.5">
+      <!-- Bouton QR Code pour partager aux collegues -->
+      <button onclick="openQrModal()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center justify-center" title="QR Code pour partager l'application">
+        <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h6v6H3V3zm12 0h6v6h-6V3zM3 15h6v6H3v-6zm13 0h2v2h-2v-2zm3 3h2v3h-2v-3zm-3 3h2v-2h-2v2zm3-6h2v2h-2v-2z"/>
+        </svg>
+      </button>
+      <!-- Bouton Archivage Historique -->
       <button onclick="saveDayToHistory()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center justify-center" title="Enregistrer dans l'historique">
         <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V7l-4-4z"/><path stroke-linecap="round" stroke-linejoin="round" d="M17 21v-8H7v8M7 3v5h8"/></svg>
       </button>
-      <button onclick="generateAndDownloadPDF()" class="px-3 py-1.5 rounded-xl bg-amber-500 active:bg-amber-400 text-slate-950 font-bold text-xs shadow flex items-center gap-1.5">
+      <!-- Bouton Export PDF -->
+      <button onclick="generateAndDownloadPDF()" class="px-3 py-1.5 rounded-xl bg-amber-500 active:bg-amber-400 text-slate-950 font-bold text-xs shadow flex items-center gap-1">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
         <span>PDF</span>
       </button>
@@ -153,7 +219,6 @@
         </button>
       </div>
 
-      <!-- Nom du conducteur -->
       <div>
         <label class="block text-[10px] font-semibold uppercase text-slate-400 mb-1">
           Nom du conducteur (Recherch&eacute; dans le fichier des services &amp; m&eacute;moris&eacute;)
@@ -161,7 +226,6 @@
         <input type="text" id="driver-name" placeholder="Ex: R&eacute;my BRASSEUR" oninput="syncHeader()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs font-bold text-white focus:border-amber-500 focus:outline-none" />
       </div>
 
-      <!-- Date (Format JJ/MM/AAAA issue de la fiche et modifiable), N Service, Duree -->
       <div class="grid grid-cols-3 gap-2">
         <div>
           <label class="block text-[10px] font-semibold uppercase text-slate-400 mb-1">Date (JJ/MM/AAAA)</label>
@@ -240,7 +304,7 @@
       <div id="duration-warning" class="hidden bg-rose-950/80 border border-rose-700 rounded-xl p-2 text-[11px] text-rose-200"></div>
     </section>
 
-    <!-- ONGLET 1 : PRESTATION (VUE COMPACTE UN ECRAN + OUVERTURE AU TOUCHER + GESTION DES TYPES DE TACHES) -->
+    <!-- ONGLET 1 : PRESTATION -->
     <div id="view-service" class="space-y-3">
 
       <div class="bg-slate-900 border border-slate-800 rounded-2xl px-3.5 py-2.5 space-y-2">
@@ -254,7 +318,6 @@
           </div>
         </div>
 
-        <!-- Panneau escamotable pour ajouter / gerer les types de taches memorises -->
         <div id="task-types-manager" class="hidden pt-2 border-t border-slate-800 space-y-2.5">
           <div class="text-[11px] text-slate-300">
             Ajoutez ici un nouveau code de t&acirc;che (ex: <code>REMORQ</code>, <code>ESSAI</code>, <code>HLP</code>). Il sera m&eacute;moris&eacute; et reconnu automatiquement lors des prochains imports :
@@ -276,7 +339,6 @@
 
       <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden divide-y divide-slate-800/80 shadow" id="service-activities-list"></div>
 
-      <!-- Apercu de la fiche de prestation originale liee au conducteur (si importee) -->
       <div id="service-sheet-preview-box" class="hidden"></div>
 
       <button onclick="addServiceActivity()" class="w-full py-2.5 rounded-2xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-amber-400 font-bold text-xs shadow">
@@ -380,9 +442,23 @@
       </div>
     </div>
 
-    <!-- ONGLET 5 : IA, HISTORIQUE & SAUVEGARDE -->
+    <!-- ONGLET 5 : IA, QR CODE PARTAGE, HISTORIQUE & SAUVEGARDE -->
     <div id="view-settings" class="hidden space-y-4">
 
+      <!-- BLOC QR CODE & PARTAGE AUX COLLEGUES -->
+      <div class="bg-slate-900 border border-emerald-500/40 rounded-2xl p-4 space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm font-bold text-emerald-400">QR Code &amp; Partage aux Coll&egrave;gues</h2>
+          <button onclick="openQrModal()" class="px-3 py-1 rounded-xl bg-emerald-500 text-slate-950 font-bold text-xs shadow">
+            Afficher QR Plein &Eacute;cran
+          </button>
+        </div>
+        <p class="text-xs text-slate-300 leading-relaxed">
+          Vos coll&egrave;gues peuvent scanner le QR Code (accessible aussi via l'ic&ocirc;ne QR tout en haut &agrave; droite) pour ouvrir et installer <strong>RB RailSynth&egrave;se</strong> sur leur propre t&eacute;l&eacute;phone.
+        </p>
+      </div>
+
+      <!-- BLOC CLE API GEMINI -->
       <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
         <h2 class="text-sm font-bold text-white">Lecture Automatique IA (Gemini Vision)</h2>
         <p class="text-xs text-slate-400 leading-relaxed">Pour que le t&eacute;l&eacute;phone lise automatiquement vos photos de REBU et vos PDF de prestation (filtr&eacute;s sur le nom du conducteur), collez votre cl&eacute; API Google Gemini :</p>
@@ -393,6 +469,7 @@
         <p class="text-[11px] text-slate-500">Sans cl&eacute; IA, l'application utilise son lecteur PDF local int&eacute;gr&eacute; et vous laisse tout modifier manuellement.</p>
       </div>
 
+      <!-- BLOC ARCHIVAGE & HISTORIQUE -->
       <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
         <div class="flex items-center justify-between">
           <h2 class="text-sm font-bold text-white">Archivage &amp; Historique T&eacute;l&eacute;phone</h2>
@@ -444,13 +521,122 @@
     </button>
   </nav>
 
-  <!-- CONTENEUR D'EXPORT PDF (FORMAT A4 POUR LE PC) -->
+  <!-- CONTENEUR D'EXPORT PDF (FORMAT A4) -->
   <div id="pdf-export-wrapper" class="hidden bg-white text-slate-900 p-6 max-w-4xl mx-auto"></div>
 
   <!-- SCRIPT & LOGIQUE METIER -->
   <script>
     if (window.pdfjsLib) {
       pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+
+    let deferredPwaPrompt = null;
+
+    if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPwaPrompt = e;
+      const banner = document.getElementById('pwa-install-banner');
+      if (banner) banner.classList.remove('hidden');
+    });
+
+    window.addEventListener('appinstalled', () => {
+      deferredPwaPrompt = null;
+      const banner = document.getElementById('pwa-install-banner');
+      if (banner) banner.classList.add('hidden');
+      showStatus("Application RB RailSynth\u00e8se install\u00e9e avec succ\u00e8s sur votre t\u00e9l\u00e9phone !");
+    });
+
+    async function triggerPwaInstall() {
+      if (!deferredPwaPrompt) {
+        showStatus("Utilisez le menu du navigateur (Ajouter \u00e0 l'\u00e9cran d'accueil / Installer l'application).");
+        return;
+      }
+      deferredPwaPrompt.prompt();
+      const { outcome } = await deferredPwaPrompt.userChoice;
+      if (outcome === 'accepted') {
+        document.getElementById('pwa-install-banner').classList.add('hidden');
+      }
+      deferredPwaPrompt = null;
+    }
+
+    // GESTION DU QR CODE POUR PARTAGER AUX COLLEGUES
+    function getShareableAppUrl() {
+      const saved = localStorage.getItem("railsynthese_share_url");
+      if (saved && saved.trim() !== "") return saved.trim();
+      if (location.protocol.startsWith("http")) return location.href.split("#")[0];
+      return "https://votre-pseudo.github.io/rb-railsynthese/";
+    }
+
+    function renderQrCode(urlToEncode) {
+      const container = document.getElementById("qr-code-canvas");
+      if (!container) return;
+      container.innerHTML = "";
+      const cleanUrl = (urlToEncode || getShareableAppUrl()).trim();
+      if (window.QRCode) {
+        new QRCode(container, {
+          text: cleanUrl,
+          width: 200,
+          height: 200,
+          colorDark: "#0f172a",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      } else {
+        const img = document.createElement("img");
+        img.src = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + encodeURIComponent(cleanUrl);
+        img.alt = "QR Code RB RailSynthese";
+        img.className = "w-[200px] h-[200px]";
+        container.appendChild(img);
+      }
+    }
+
+    function openQrModal() {
+      const currentUrl = getShareableAppUrl();
+      const inp = document.getElementById("qr-url-input");
+      if (inp) inp.value = currentUrl;
+      document.getElementById("qr-modal").classList.remove("hidden");
+      renderQrCode(currentUrl);
+    }
+
+    function closeQrModal() {
+      document.getElementById("qr-modal").classList.add("hidden");
+    }
+
+    function updateQrUrl(val) {
+      const clean = String(val || "").trim();
+      localStorage.setItem("railsynthese_share_url", clean);
+      if (clean) renderQrCode(clean);
+    }
+
+    async function copyShareUrl() {
+      const val = document.getElementById("qr-url-input").value.trim();
+      try {
+        await navigator.clipboard.writeText(val);
+        showStatus("Lien copi\u00e9 dans le presse-papiers !");
+      } catch (e) {
+        showStatus("Lien : " + val);
+      }
+    }
+
+    async function shareAppNative() {
+      const val = document.getElementById("qr-url-input").value.trim();
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: "RB RailSynth\u00e8se",
+            text: "Voici l'application RB RailSynth\u00e8se (Prestations & REBU Lineas / SIBELIT) :",
+            url: val
+          });
+        } catch (e) {}
+      } else {
+        copyShareUrl();
+      }
     }
 
     const BASE_STATIONS = {
@@ -555,7 +741,6 @@
       return t;
     }
 
-    // MOTEUR DE STOCKAGE PERSISTANT HAUTE CAPACITE (INDEXEDDB)
     const DB_NAME = "RBRailSyntheseDB";
     const DB_VERSION = 1;
     const STORE_NAME = "kv_store";
@@ -620,7 +805,6 @@
           const mergedOpTypes = Array.isArray(savedState.opTypes) && savedState.opTypes.length > 0
             ? savedState.opTypes
             : [...BASE_OP_TYPES];
-          // S'assurer que toute tache presente dans activities est aussi dans opTypes
           if (Array.isArray(savedState.activities)) {
             savedState.activities.forEach(a => {
               if (a.type && !mergedOpTypes.includes(a.type)) mergedOpTypes.push(a.type);
@@ -667,7 +851,6 @@
       saveState();
     }
 
-    // GESTION DES TYPES DE TACHES PERSONNALISES (AJOUT, MEMORISATION & RECONNAISSANCE AUTO)
     function getActiveOpTypes() {
       if (!Array.isArray(appState.opTypes) || appState.opTypes.length === 0) {
         appState.opTypes = [...BASE_OP_TYPES];
@@ -706,12 +889,11 @@
       const existing = list.find(item => item.toLowerCase() === clean.toLowerCase());
       if (existing) return existing;
 
-      // Garder la casse exacte ou majuscule par defaut
       const formatted = clean === clean.toLowerCase() ? clean.toUpperCase() : clean;
       list.push(formatted);
       renderTaskTypesBadges();
       await saveState();
-      showStatus("Nouvelle t\u00e2che \"" + formatted + "\" enregistr\u00e9e ! Elle sera reconnue automatiquement.");
+      showStatus("Nouvelle t\u00e2che \"" + formatted + "\" enregistr\u00e9e !");
       return formatted;
     }
 
@@ -759,7 +941,6 @@
       showStatus("T\u00e2che \"" + typeName + "\" supprim\u00e9e.");
     }
 
-    // MODULE DE COLLAGE UNIVERSEL (PRESSE-PAPIERS PHOTO / PDF / TEXTE)
     function openPasteModal(target) {
       currentPasteTarget = target || "service";
       const titles = {
@@ -952,11 +1133,14 @@
 
     function switchMobileTab(tab) {
       ["service", "trains", "docs", "stations", "settings"].forEach(t => {
-        document.getElementById("view-" + t).classList.toggle("hidden", t !== tab);
+        const el = document.getElementById("view-" + t);
+        if (el) el.classList.toggle("hidden", t !== tab);
         const btn = document.getElementById("nav-" + t);
-        btn.className = t === tab
-          ? "flex flex-col items-center gap-1 py-1 text-amber-400"
-          : "flex flex-col items-center gap-1 py-1 text-slate-400";
+        if (btn) {
+          btn.className = t === tab
+            ? "flex flex-col items-center gap-1 py-1 text-amber-400"
+            : "flex flex-col items-center gap-1 py-1 text-slate-400";
+        }
       });
       if (tab === "stations") renderStationsList();
       if (tab === "docs") renderOtherDocs();
@@ -972,7 +1156,6 @@
       saveState();
     }
 
-    // LOGIQUE EN 2 ETAPES POUR "NOUVELLE PRESTATION"
     function openNewPrestationModal() {
       document.getElementById("modal-step-1").classList.remove("hidden");
       document.getElementById("modal-step-2").classList.add("hidden");
@@ -1143,7 +1326,6 @@
         '</details>';
     }
 
-    // MODULE 1 : PRESTATION (VUE COMPACTE SUR 1 ECRAN + OUVERTURE AU TOUCHER)
     function mergeSameTrainLegs(activities) {
       const merged = [];
       for (const act of activities) {
@@ -1429,7 +1611,7 @@
       ];
       renderAll();
       saveState();
-      if (!silent) showStatus("Prestation type BCHA104 (14/10/2026) charg\u00e9e.");
+      if (!silent) showStatus("Prestation type BCHA104 charg\u00e9e.");
     }
 
     function toggleRawTextModal() {
@@ -1457,8 +1639,6 @@
 
       const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
       const parsed = [];
-
-      // Trier les types de taches du plus long au plus court pour reconnaitre d'abord les codes composes (ex: "AFREL DP" avant "AFREL")
       const sortedOpTypes = [...getActiveOpTypes()].sort((a, b) => b.length - a.length);
 
       for (let i = 0; i < lines.length; i++) {
@@ -1501,7 +1681,6 @@
       }
     }
 
-    // MODULE 2 : BULLETINS DE FREINAGE (REBU) AVEC CASE 1 SEPAREE PAR PAYS
     function createTrainObject(overrides) {
       return normalizeTrainCase1(Object.assign({
         id: "rebu_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
@@ -1720,7 +1899,7 @@
         ).join("");
 
         const addCountryButtonsHtml = hiddenFormCountries.map(c =>
-          '<button onclick="activateCase1Country(' + idx + ', \'' + c + '\')" class="px-2 py-0.5 rounded-lg bg-slate-900 border border-slate-700 text-[10px] font-mono text-slate-400 active:text-amber-300">+ ' + c + '</button>'
+          '<button onclick="activateCase1Country(' + idx + ', \'' + c + '\')" class="px-2 py-0.5 rounded-lg bg-slate-950 border border-slate-700 text-[10px] font-mono text-slate-400 active:text-amber-300">+ ' + c + '</button>'
         ).join("");
 
         const activeBadges = [];
@@ -1914,7 +2093,6 @@
       });
     }
 
-    // MODULE 3 : AUTRES DOCUMENTS
     async function handleOtherDocsUpload(event) {
       const files = Array.from(event.target.files || []);
       if (files.length === 0) return;
@@ -2245,7 +2423,7 @@
       if (!file) return;
       switchMobileTab("service");
       const targetDriver = (appState.driverName || "R\u00e9my BRASSEUR").trim();
-      showStatus("Recherche de la prestation de \"" + targetDriver + "\" dans \"" + file.name + "\"...");
+      showStatus("Recherche de la prestation de \"" + targetDriver + "\" dans \"" + file.name + "\"..");
 
       try {
         let text = "";
@@ -2337,7 +2515,6 @@
       event.target.value = "";
     }
 
-    // MODULE 4 : DICTIONNAIRE DES GARES (AVEC PROPAGATION AUTOMATIQUE DANS REBU ET PRESTATION)
     function renderStationsList() {
       const q = (document.getElementById("station-search-input").value || "").toLowerCase().trim();
       const container = document.getElementById("stations-list-container");
@@ -2461,7 +2638,6 @@
       showStatus("Dictionnaire des gares r\u00e9initialis\u00e9.");
     }
 
-    // GENERATION DU PDF FINAL (AVEC PRISE EN COMPTE DES 3 CASES A COCHER)
     function buildPrintableHTML() {
       const actsHtml = appState.activities.map(a => {
         const title = ((a.trainNo ? a.trainNo + " " : "") + a.type + " " + a.location).trim();
@@ -2653,11 +2829,12 @@
       historyEntries.forEach((item, idx) => {
         const div = document.createElement("div");
         div.className = "bg-slate-950 border border-slate-800 rounded-xl p-2.5 flex items-center justify-between text-xs";
-        const nbDocs = (item.state.otherDocs && item.state.otherDocs.length) || 0;
+        const nbDocs = (item.state && item.state.otherDocs && item.state.otherDocs.length) || 0;
+        const nbTrains = (item.state && item.state.trains && item.state.trains.length) || 0;
         div.innerHTML =
           '<div>' +
-            '<div class="font-bold text-white">' + escapeHtml(formatToDDMMYYYY(item.state.serviceDate)) + ' &mdash; ' + escapeHtml(item.state.serviceNumber || "Service") + '</div>' +
-            '<div class="text-[10px] text-slate-400">' + escapeHtml(item.state.driverName || "") + ' &bull; ' + item.state.trains.length + ' REBU &bull; ' + nbDocs + ' doc(s)</div>' +
+            '<div class="font-bold text-white">' + escapeHtml(formatToDDMMYYYY(item.state ? item.state.serviceDate : "")) + ' &mdash; ' + escapeHtml((item.state && item.state.serviceNumber) || "Service") + '</div>' +
+            '<div class="text-[10px] text-slate-400">' + escapeHtml((item.state && item.state.driverName) || "") + ' &bull; ' + nbTrains + ' REBU &bull; ' + nbDocs + ' doc(s)</div>' +
           '</div>' +
           '<button onclick="loadHistoryEntry(' + idx + ')" class="px-3 py-1 bg-amber-500 text-slate-950 font-bold rounded-lg">Ouvrir</button>';
         container.appendChild(div);
