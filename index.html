@@ -89,22 +89,21 @@
   </div>
 
   <!-- FENETRE MODALE DE COLLAGE UNIVERSEL (PHOTO / PDF / TEXTE) -->
-  <div id="paste-modal" class="no-print hidden fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-3.5">
-      <div class="flex items-center justify-between">
-        <h3 id="paste-modal-title" class="text-sm font-bold text-amber-400">Coller depuis le presse-papiers</h3>
+  <div id="paste-modal" class="no-print hidden fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4 select-none" style="-webkit-user-select: none; user-select: none;">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-3.5 select-none">
+      <div class="flex items-center justify-between select-none">
+        <h3 id="paste-modal-title" class="text-sm font-bold text-amber-400 pointer-events-none select-none">Coller depuis le presse-papiers</h3>
         <button onclick="closePasteModal()" class="text-slate-400 hover:text-white font-bold text-lg leading-none">&times;</button>
       </div>
 
-      <p class="text-xs text-slate-300 leading-relaxed">
-        Restez appuy&eacute; dans le cadre ci-dessous et choisissez <strong>&laquo; Coller &raquo;</strong> (ou s&eacute;lectionnez votre PDF / Photo / Texte dans le presse-papiers de votre clavier Samsung) :
+      <p class="text-xs text-slate-300 leading-relaxed pointer-events-none select-none" style="-webkit-user-select: none; user-select: none;">
+        Appuyez longuement dans le cadre vide ci-dessous puis appuyez sur <strong>&laquo; Coller &raquo;</strong> :
       </p>
 
-      <div id="paste-drop-zone" contenteditable="true"
+      <textarea id="paste-drop-zone" rows="4"
         onpaste="handleModalPasteEvent(event)"
-        class="w-full min-h-[110px] max-h-40 overflow-y-auto bg-slate-950 border-2 border-dashed border-amber-500/70 focus:border-amber-400 rounded-xl p-3 text-xs text-slate-200 focus:outline-none flex items-center justify-center text-center"
-        data-placeholder="Appuyez longuement ici puis appuyez sur COLLER">
-      </div>
+        aria-label="Zone de collage"
+        class="w-full min-h-[115px] max-h-44 bg-slate-950 border-2 border-dashed border-amber-500/70 focus:border-amber-400 rounded-xl p-3 text-xs text-slate-100 focus:outline-none leading-relaxed"></textarea>
 
       <div class="grid grid-cols-2 gap-2 pt-1">
         <button onclick="tryDirectClipboardRead()" class="py-2.5 px-3 rounded-xl bg-indigo-600 active:bg-indigo-500 text-white text-xs font-bold shadow">
@@ -641,7 +640,7 @@
     }
 
     const BASE_STATIONS = {
-      "FLT":"Aalter","FRST":"Aarschot","FAR":"Aarsele","FXA":"Acren","FAO":"Aiseau","MAI":"Aisemont","FAK":"Alken","FLS":"Alost","FLSO":"Alost-Est","FLSK":"Alost-Kerrebroek","NM":"Amay","NA":"Ampsin","NDN":"Andenne","MGR":"Angleur","ANS":"Ans","MNS":"Anseremme","FNT":"Antoing","FNDD":"Antwerpen-Noord-Bundel D","FNDN":"Antwerpen-Noord-Bundel N","FNDB3":"Antwerpen-Noord-Bundel B3","FNDA1":"Antwerpen-Noord-Bundel A1","FNDS":"Anvers-Bassins","FCV":"Anvers-Berchem","FN":"Anvers-Central","FNDM":"Anvers-Dam","GNS":"Anvers-Est","FNKL":"Anvers-Kiel","LB":"Anvers-Luchtbal","AND":"Anvers-Noorderdokken","FNND":"Anvers-Nord","FNZG":"Anvers-Schijnpoort","FNZD":"Anvers-Sud","FNWH":"Anvers-Waaslandhaven","FAN":"Anzegem","MAP":"Appelterre","GAR":"Arcades","ARC":"Archennes","LL":"Arlon","LAS":"Asse","MAS":"Assesse","ATH":"Ath","MH":"Athus","MAB":"Aubange","FDN":"Audenarde","MTL":"Autelbas","FVL":"Auvelais","AYE":"Aye","MWL":"Aywaille",
+      "FLT":"Aalter","FRST":"Aarschot","FAR":"Aarsele","FXA":"Acren","FAO":"Aiseau","MAI":"Aisemont","FAK":"Alken","FLS":"Alost","FLSO":"Alost-Est","FLSK":"Alost-Kerrebroek","NM":"Amay","NA":"Ampsin","NDN":"Andenne","MGR":"Angleur","ANS":"Ans","MNS":"Anseremme","FNT":"Antoing","FNDD":"Antwerpen-Noord-Bundel D","FNDN":"Antwerpen-Noord-Bundel N","FNDB3":"Antwerpen-Noord-Bundel B3","FNDB1":"Antwerpen-Noord-Bundel B1","FNDC2":"Antwerpen-Noord-Bundel C2","FNDA1":"Antwerpen-Noord-Bundel A1","FIZ P":"Muizen Parking","FNDS":"Anvers-Bassins","FCV":"Anvers-Berchem","FN":"Anvers-Central","FNDM":"Anvers-Dam","GNS":"Anvers-Est","FNKL":"Anvers-Kiel","LB":"Anvers-Luchtbal","AND":"Anvers-Noorderdokken","FNND":"Anvers-Nord","FNZG":"Anvers-Schijnpoort","FNZD":"Anvers-Sud","FNWH":"Anvers-Waaslandhaven","FAN":"Anzegem","MAP":"Appelterre","GAR":"Arcades","ARC":"Archennes","LL":"Arlon","LAS":"Asse","MAS":"Assesse","ATH":"Ath","MH":"Athus","MAB":"Aubange","FDN":"Audenarde","MTL":"Autelbas","FVL":"Auvelais","AYE":"Aye","MWL":"Aywaille",
       "FRA":"Baasrode-Sud","BKB":"Bakenbos","FGE":"Balegem-Sud","FGED":"Balegem-Village","LNE":"Balen","GBW":"Balen-Usines","BAM":"Bambrugge","LBV":"Barvaux","LBC":"Bascoup","FBS":"Bas\u00e8cles","NBE":"Bas-Oha","GBG":"Bassenge","BGWV":"Basse-Wavre","FSU":"Baulers","MBG":"Beauraing","LBM":"Beernem","GBB":"Beersel","FVB":"Beervelde","GBD":"Begijnendijk","BEI":"Beign\u00e9e","FEB":"Bellem","LLB":"Belsele","FBSG":"Berchem-Sainte-Agathe","LBN":"Beringen","GBL":"Berlaar","MBX":"Bertrix","LBZ":"Berz\u00e9e","MBZ":"Beuzet","FBR":"Beveren (Waas)","MBV":"Beverlo","FBRG":"Bierges-Walibi","FTI":"Bierset-Awans","FIE":"Bilzen","LBH":"Binche","MIM":"Bissegem","FBK":"Blankenberge","MBL":"Blanmont","LLT":"Blaton","BLE":"Bl\u00e9ret","FBL":"Bockstael","GBC":"Boechout","MBH":"Bois-d'Haine","MBS":"Bois d'Ausse","MBR":"Boitsfort","FKY":"Bokrijk","MBM":"Bomal","BOL":"Boondael","GB":"Booischot","FMB":"Boom","FOB":"Boortmeerbeek","BOR":"Bordet","LOB":"Bornem","BOTZ":"Botzelaer","LBG":"Bourg-L\u00e9opold","FSB":"Boussu","FOW":"Bouwel","LBQ":"Bracquegnies","FBI":"Braibant","FBD":"Braine-l'Alleud","FBC":"Braine-le-Comte","FBX":"Bressoux","FBG":"Brugelette","FR":"Bruges","FRSP":"Bruges-Saint-Pierre","FBNL":"Brussels-Airport-Zaventem","FBCL":"Bruxelles-Central","FBCK":"Bruxelles-Chapelle","FBCO":"Bruxelles-Congr\u00e8s","LX":"Bruxelles-Luxembourg","FBMZ":"Bruxelles-Midi","FBN":"Bruxelles-Nord","FBOW":"Bruxelles-Ouest","FBKI":"Bruxelles-Petite-\u00cele","FBSM":"Bruxelles-Schuman","BUDA":"Buda","FGN":"Buggenhout","FGU":"Buizingen","FRU":"Burst",
       "CFH":"Calais-Fr\u00e9thun","FCA":"Callenelle","FUC":"Cambron-Casteau","MCL":"Carlsbourg","LNS":"Carni\u00e8res","MCM":"C\u00e9roux-Mousty","CAD":"Chapelle-Dieu","CHAP":"Chapois","FCRO":"Charleroi-Ouest","FCR":"Charleroi-Sud (Central)","GCR":"Charleroi-Sud-Quai","MC":"Chastre","CHAS":"Ch\u00e2teau-de-Seilles","FCL":"Ch\u00e2telet","FCLDP":"Ch\u00e2telet-F D\u00e9p\u00f4t TD","FCLF":"Chatelet formation","FCH":"Ch\u00ean\u00e9e","LC":"Ciney","FEQ":"Clabecq","FEQM":"Clabecq-Marchandises","MCT":"Comblain-la-Tour","FOI":"Comines","COO":"Coo","LCL":"Couillet","LCCM":"Courcelles-Motte","MRR":"Courri\u00e8re","LUH":"Cour-sur-Heure","LK":"Courtrai","LKV":"Courtrai-Marchandises","LCN":"Court-Saint-Etienne","LCV":"Couvin","MX":"Coxyde","LCS":"Cuesmes",
       "MDT":"Dave-Saint-Martin","DBIS":"De Bist","FHO":"De Hoek","FPT":"De Pinte","LDK":"Deerlijk","FD":"Deinze","FDEL":"Delta","FDD":"Denderleeuw","FDG":"Diegem","GDP":"Diepenbeek","FDT":"Diest","FKB":"Dilbeek","NDT":"Dinant","FIK":"Dixmude","GDL":"Dolhain-Gileppe","GDV":"Dolhain-Vicinal","FDF":"Duffel","MUI":"Duinbergen",
@@ -666,7 +665,7 @@
     };
 
     const BASE_OP_TYPES = [
-      "LEASE", "CTB", "TAXI", "VOETPIED", "AFREL", "AFREL DP", "TRANSFER", "FP",
+      "LEASE", "CTB", "TAXI", "VOETPIED", "AFREL", "AFREL DP", "TRANSFER", "FP", "RP",
       "PLAT", "KOPAC", "REMFREA", "REMFREC", "XKOPAC", "XREMFREC", "LEG", "xONTDC",
       "BEVAP", "BUNFAI1", "LOC KOPAC", "LOC ONTDC", "VEDE", "PASS", "PAUZE", "END"
     ];
@@ -715,6 +714,8 @@
 
     function extractDateFromServiceText(text) {
       if (!text) return "";
+      const appDate = text.match(/Date\s+d['’]application[\s:|]*(\d{2})[\/\-\.](\d{2})[\/\-\.](20\d{2})/i);
+      if (appDate) return appDate[1] + "/" + appDate[2] + "/" + appDate[3];
       const m1 = text.match(/\b(\d{2})[\/\-\.](\d{2})[\/\-\.](20\d{2})\b/);
       if (m1) return m1[1] + "/" + m1[2] + "/" + m1[3];
       const m2 = text.match(/\b(20\d{2})[\/\-\.](\d{2})[\/\-\.](\d{2})\b/);
@@ -940,15 +941,19 @@
     function openPasteModal(target) {
       currentPasteTarget = target || "service";
       const titles = {
-        service: "Coller une Prestation (PDF, Photo ou Texte)",
-        rebu: "Coller un REBU (PDF, Photo ou Texte)",
-        docs: "Coller dans Autres documents (Photo ou PDF)"
+        service: "Coller une Prestation (Texte ou Capture)",
+        rebu: "Coller un REBU (Texte ou Capture)",
+        docs: "Coller dans Autres documents"
       };
       document.getElementById("paste-modal-title").innerHTML = titles[currentPasteTarget] || "Coller";
       const zone = document.getElementById("paste-drop-zone");
-      zone.innerHTML = '<span class="text-slate-400 pointer-events-none">Appuyez longuement ici puis choisissez <strong>Coller</strong></span>';
+      if (zone) {
+        zone.value = "";
+      }
       document.getElementById("paste-modal").classList.remove("hidden");
-      setTimeout(() => zone.focus(), 80);
+      setTimeout(() => {
+        if (zone) zone.focus();
+      }, 80);
     }
 
     function closePasteModal() {
@@ -1031,21 +1036,12 @@
 
     async function submitPastedZoneContent() {
       const zone = document.getElementById("paste-drop-zone");
-      const img = zone.querySelector("img");
-      if (img && img.src) {
-        closePasteModal();
-        const resp = await fetch(img.src);
-        const blob = await resp.blob();
-        const file = new File([blob], "Image_Collee.jpg", { type: blob.type || "image/jpeg" });
-        await routePastedFile(file);
-        return;
-      }
-      const txt = (zone.innerText || zone.textContent || "").replace(/Appuyez longuement ici.*/i, "").trim();
+      const txt = (zone && zone.value !== undefined ? zone.value : (zone ? zone.innerText : "")).trim();
       if (txt) {
         closePasteModal();
         await routePastedText(txt);
       } else {
-        showStatus("Rien n'a encore \u00e9t\u00e9 coll\u00e9 dans le cadre.");
+        showStatus("Le cadre est vide : appuyez longuement dans le cadre puis choisissez Coller.");
       }
     }
 
@@ -1063,7 +1059,7 @@
       if (currentPasteTarget === "service") {
         switchMobileTab("service");
         document.getElementById("raw-service-input").value = text;
-        parsePastedServiceText();
+        await parsePastedServiceText();
       } else if (currentPasteTarget === "rebu") {
         switchMobileTab("trains");
         const localData = parseRebuTextLocally(text);
@@ -1218,29 +1214,156 @@
       }
     }
 
+    const STATION_ALIASES = {
+      "LA LOUVIERE GARE INDUSTRIELLE": "GLI",
+      "LA LOUVIERE GARE": "GLI",
+      "GENT ZEEHAVEN": "FGZH",
+      "ZEEHAVEN GENT": "FGZH",
+      "GAND MARITIME": "FGZH",
+      "CHATELET F DEPOT TD": "FCLDP",
+      "CHATELET FORMATION": "FCLF",
+      "ANTWERPEN NOORD BUNDEL B3": "FNDB3",
+      "ANTWERPEN NOORD BUNDEL B1": "FNDB1",
+      "ANTWERPEN NOORD BUNDEL C2": "FNDC2",
+      "ANTWERPEN NOORD BUNDEL A1": "FNDA1",
+      "ANTWERPEN NOORD BUNDEL D": "FNDD",
+      "ANTWERPEN NOORD BUNDEL N": "FNDN",
+      "ANTWERPEN NOORD BUNDELIN": "FNDN",
+      "ANTWERPEN NOORD": "FNND",
+      "RONET FORMATION": "FEOF",
+      "RONET PARKING": "FEO P",
+      "JURBISE PARKING": "FJR P",
+      "JURBISE": "FJR",
+      "MUIZEN GOEDEREN": "FIZG",
+      "MUIZEN PARKING": "FIZ P",
+      "MONCEAU PARKING": "LNC P",
+      "SCHAERBEEK FORMATION": "FSRN"
+    };
+
+    function normalizeServicePdfText(text) {
+      if (!text) return "";
+      const homoglyphs = {
+        "\u0410": "A", "\u0430": "a",
+        "\u0412": "B", "\u0392": "B",
+        "\u0421": "C", "\u0441": "c",
+        "\u0415": "E", "\u0435": "e", "\u0395": "E",
+        "\u041d": "H",
+        "\u041a": "K", "\u043a": "k",
+        "\u041c": "M",
+        "\u041e": "O", "\u043e": "o",
+        "\u0420": "P", "\u0440": "p",
+        "\u0422": "T",
+        "\u0425": "X", "\u0445": "x"
+      };
+      let res = String(text);
+      for (const [k, v] of Object.entries(homoglyphs)) {
+        res = res.split(k).join(v);
+      }
+      // Corriger les heures PDF decalees du type "0310:" ou "INDUSTRIELLE0310:" -> " 03:10 "
+      res = res.replace(/(?<![0-9])([0-2]\d)([0-5]\d):/g, " $1:$2 ");
+      // Separer les heures collees aux lettres du type "INDUSTRIELLE11:25" -> "INDUSTRIELLE 11:25"
+      res = res.replace(/([A-Za-z\u00C0-\u00FF])([0-2]?\d:[0-5]\d)/g, "$1 $2");
+      return res;
+    }
+
+    function stripLocoAndOperatorNoise(str) {
+      if (!str) return "";
+      return String(str)
+        .replace(/\bZE-[A-Z0-9\-]+/gi, " ")
+        .replace(/\bF\d-T\d{2}-[A-Za-z0-9\-]+(?:\s+\d+)?/gi, " ")
+        .replace(/Lineas\s+NV\s*(?:\(\s*RU\s*\d+\s*\))?/gi, " ")
+        .replace(/\(\s*RU\s*\d+\s*\)/gi, " ")
+        .replace(/\bSIBELIT\b/gi, " ")
+        .replace(/::\s*[A-Z0-9\-]+/gi, " ")
+        .replace(/[A-Za-z\u00C0-\u00FF\-\s]*\+32[\d\s]+;?\s*[A-Z0-9\-]*/g, " ");
+    }
+
+    function isPageOwnedByDriver(pageText, driverName) {
+      if (!pageText || !driverName) return false;
+      // Retirer toutes les lignes de remise/reprise (AFREL / AFREL DP) qui contiennent un numero de telephone (+32) ou "; BCHA-"
+      const withoutHandovers = String(pageText)
+        .replace(/[^\n]*?(?:\+32\s*\d|;\s*\+?\d{2,}|\b04\d{2}\s*\d{6}\b|;\s*(?:BCHA|BANT|STHL|SLAL)\-\d+)[^\n]*/gi, " ");
+      const normPage = normStr(withoutHandovers);
+      const nameParts = normStr(driverName).split(/\s+/).filter(p => p.length >= 3);
+      if (nameParts.length === 0) return false;
+      return nameParts.every(part => normPage.includes(part)) ||
+             nameParts.some(part => part.length >= 5 && normPage.includes(part));
+    }
+
+    function extractStationsFromLine(rawStr, opType) {
+      const cleaned = stripLocoAndOperatorNoise(rawStr);
+      const norm = normStr(cleaned).toUpperCase();
+      if (!norm) return "GLI";
+
+      const lookup = [];
+      for (const [alias, code] of Object.entries(STATION_ALIASES)) {
+        lookup.push({ phrase: normStr(alias).toUpperCase(), code });
+      }
+      for (const [code, fullName] of Object.entries(appState.stations || BASE_STATIONS)) {
+        const cleanFull = normStr(String(fullName).replace(/\(.*?\)/g, " ")).toUpperCase();
+        if (cleanFull.length >= 3) {
+          lookup.push({ phrase: cleanFull, code });
+        }
+        const cleanCode = normStr(code).toUpperCase();
+        if (cleanCode.length >= 2) {
+          lookup.push({ phrase: cleanCode, code });
+        }
+      }
+
+      lookup.sort((a, b) => b.phrase.length - a.phrase.length);
+
+      const occupied = new Array(norm.length).fill(false);
+      const found = [];
+
+      for (const item of lookup) {
+        if (!item.phrase) continue;
+        const rx = new RegExp("(?:^|(?<=\\s))" + escapeRegexStr(item.phrase) + "(?=$|(?=\\s))", "g");
+        let m;
+        while ((m = rx.exec(norm)) !== null) {
+          const s = m.index;
+          const e = s + item.phrase.length;
+          let overlap = false;
+          for (let k = s; k < e; k++) {
+            if (occupied[k]) { overlap = true; break; }
+          }
+          if (!overlap) {
+            for (let k = s; k < e; k++) occupied[k] = true;
+            found.push({ pos: s, code: item.code });
+          }
+        }
+      }
+
+      found.sort((a, b) => a.pos - b.pos);
+      const codes = found.map(f => f.code);
+
+      if (codes.length === 0) {
+        return norm.slice(0, 20) || "GLI";
+      }
+
+      // Regle LEASE : toujours une seule gare (sans gare de depart en debut de service, sans gare d'arrivee en fin de service)
+      if (String(opType || "").toUpperCase() === "LEASE") {
+        return codes[0];
+      }
+
+      const uniqueCodes = [];
+      for (const c of codes) {
+        if (uniqueCodes.length === 0 || uniqueCodes[uniqueCodes.length - 1] !== c) {
+          uniqueCodes.push(c);
+        }
+      }
+
+      if (uniqueCodes.length === 1) {
+        return uniqueCodes[0];
+      }
+      return uniqueCodes[0] + " - " + uniqueCodes[uniqueCodes.length - 1];
+    }
+
     function abbreviateStationName(inputStr) {
       if (!inputStr) return "";
       const clean = inputStr.trim();
       const upper = clean.toUpperCase();
       if (appState.stations[upper]) return upper;
-
-      const target = normStr(clean);
-      if (!target) return clean;
-
-      for (const [code, fullName] of Object.entries(appState.stations)) {
-        if (normStr(fullName) === target || normStr(code) === target) {
-          return code;
-        }
-      }
-
-      for (const [code, fullName] of Object.entries(appState.stations)) {
-        const normFull = normStr(fullName);
-        if (target.length >= 4 && normFull.includes(target)) {
-          return code;
-        }
-      }
-
-      return clean;
+      return extractStationsFromLine(clean, "");
     }
 
     function propagateStationChange(oldCode, newCode, stationName) {
@@ -1323,8 +1446,31 @@
     }
 
     function mergeSameTrainLegs(activities) {
-      const merged = [];
+      // Etape 1 : Supprimer les doublons stricts (ex: 2x BEVAP, 2x AFREL, 2x TRANSFER aux memes heures pour 2 locos en UM)
+      const deduped = [];
       for (const act of activities) {
+        const cleanLoc = extractStationsFromLine(act.location || "", act.type || "");
+        const normalizedAct = {
+          ...act,
+          type: String(act.type || "").toUpperCase() === "XONTDC" ? "xONTDC" : act.type,
+          location: cleanLoc,
+          endTime: String(act.type || "").toUpperCase() === "LEASE" ? "" : (act.endTime || "")
+        };
+        const isDuplicate = deduped.some(existing =>
+          String(existing.type || "").toUpperCase() === String(normalizedAct.type || "").toUpperCase() &&
+          String(existing.trainNo || "").trim() === String(normalizedAct.trainNo || "").trim() &&
+          String(existing.location || "").trim() === String(normalizedAct.location || "").trim() &&
+          String(existing.startTime || "").trim() === String(normalizedAct.startTime || "").trim() &&
+          String(existing.endTime || "").trim() === String(normalizedAct.endTime || "").trim()
+        );
+        if (!isDuplicate) {
+          deduped.push(normalizedAct);
+        }
+      }
+
+      // Etape 2 : Fusionner les LEG consecutifs qui ont le meme numero de train
+      const merged = [];
+      for (const act of deduped) {
         const prev = merged[merged.length - 1];
         if (
           prev &&
@@ -1614,33 +1760,51 @@
       document.getElementById("raw-text-box").classList.toggle("hidden");
     }
 
-    function parsePastedServiceText() {
+    async function parsePastedServiceText() {
       const rawInput = document.getElementById("raw-service-input").value;
       if (!rawInput || !rawInput.trim()) {
         showStatus("Le cadre de texte est vide. Collez ou importez d'abord une prestation.");
         return;
       }
 
-      // Normaliser les heures (ex: 10h55 ou 10.55 -> 10:55)
-      let raw = rawInput.replace(/\b([0-2]?\d)[hH\.]([0-5]\d)\b/g, "$1:$2");
+      // 1. Si le texte contient plusieurs fiches de collègues différents (ex: copié-collé d'un PDF complet), filtrer uniquement le conducteur
+      let filteredRaw = rawInput;
+      const targetDriver = (appState.driverName || "").trim();
+      if (targetDriver.length >= 3 && /Collaborateur/i.test(rawInput)) {
+        const blocks = rawInput.split(/(?=LINEAS\s+Fiche\s+de|Fiche\s+de\s+Prestation)/i);
+        if (blocks.length > 1) {
+          const matchingBlocks = blocks.filter(b => isPageOwnedByDriver(b, targetDriver));
+          if (matchingBlocks.length > 0) {
+            filteredRaw = matchingBlocks.join("\n");
+          }
+        }
+      }
+
+      // 2. Normaliser les caractères cyrilliques (ХКОРАС -> XKOPAC) et les heures collées (0310: -> 03:10)
+      let raw = normalizeServicePdfText(filteredRaw);
+      raw = raw.replace(/\b([0-2]?\d)[hH\.]([0-5]\d)\b/g, "$1:$2");
 
       const foundDate = extractDateFromServiceText(raw);
       if (foundDate) {
         appState.serviceDate = foundDate;
       }
 
-      const bchaMatch = raw.match(/\b([A-Z]{2,5}\s*\d{2,4})\b/i);
-      if (bchaMatch && /BCHA|SIB|LIN/i.test(bchaMatch[1])) {
+      // Extraire le N° de prestation hors des lignes de remise (+32)
+      const headerWithoutHandovers = raw.replace(/[^\n]*\+32[\d\s]+;?\s*[A-Z0-9\-]*[^\n]*/gi, " ");
+      const bchaMatch = headerWithoutHandovers.match(/\b((?:BCHA|BANT|STHL|SLAL|FNND|FCL|SIB|LIN)[\s\-]*\d{2,4})\b/i);
+      if (bchaMatch) {
         appState.serviceNumber = bchaMatch[1].replace(/\s+/g, "").toUpperCase();
       }
 
-      const durMatch = raw.match(/Dur[e\u00e9]e\s*[:=]?\s*(\d{1,2}:\d{2})/i);
+      const durMatch = headerWithoutHandovers.match(/Dur[e\u00e9]e\s*[:=]?\s*(\d{1,2}:\d{2})/i);
       if (durMatch) {
         appState.expectedDuration = durMatch[1].padStart(5, "0");
       }
 
-      // Nettoyer l'expression "Duree: HH:MM" pour ne pas la confondre avec l'heure d'une tache
-      const cleanedForTasks = raw.replace(/Dur[e\u00e9]e\s*[:=]?\s*\d{1,2}:\d{2}/gi, " ");
+      // 3. Nettoyer les champs d'en-tête (Durée, Début, Fin) et les notes de remise (+32 ...) pour ne pas fausser les tâches
+      const cleanedForTasks = raw
+        .replace(/(?:Dur[e\u00e9]e|D[e\u00e9]but|Fin)\s*[:=]?\s*\d{1,2}:\d{2}/gi, " ")
+        .replace(/[^\n]*\+32\s*\d[\d\s]+;?\s*[A-Z0-9\-]*[^\n]*/gi, "\n");
 
       const activeOps = getActiveOpTypes();
       const sortedOpTypes = [...activeOps].sort((a, b) => b.length - a.length);
@@ -1652,7 +1816,6 @@
       const rawLines = cleanedForTasks.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
       const expandedLines = [];
 
-      // Si une ligne contient plusieurs taches collees (ex: extraction PDF sur une seule ligne), on la decoupe
       for (const line of rawLines) {
         const matches = [];
         let m;
@@ -1695,7 +1858,8 @@
         if (!mOp) continue;
 
         const matchedOpRaw = mOp[1];
-        const canonicalOp = activeOps.find(o => o.toLowerCase() === matchedOpRaw.toLowerCase()) || matchedOpRaw.toUpperCase();
+        let canonicalOp = activeOps.find(o => o.toLowerCase() === matchedOpRaw.toLowerCase()) || matchedOpRaw.toUpperCase();
+        if (canonicalOp.toUpperCase() === "XONTDC") canonicalOp = "xONTDC";
 
         let times = Array.from(line.matchAll(timeRxGlobal)).map(x => x[1]);
         if (times.length === 0 && i + 1 < expandedLines.length && !opRxSingle.test(expandedLines[i + 1])) {
@@ -1720,7 +1884,10 @@
         times.forEach(t => { rem = rem.replace(t, " "); });
         rem = rem.replace(new RegExp(escapeRegexStr(matchedOpRaw), "i"), " ");
         rem = rem.replace(/\b\d{2}[\/\-\.]\d{2}[\/\-\.]20\d{2}\b/g, " ");
-        rem = rem.replace(/\bBCHA\s*\d{3}\b/gi, " ");
+        rem = rem.replace(/\b(?:BCHA|BANT|STHL|SLAL)[\s\-]*\d{2,4}\b/gi, " ");
+
+        // Retirer les codes locomotives (ZE-M-T77-10...) et Lineas NV (RU 2188) AVANT de chercher le N° de train et la gare
+        rem = stripLocoAndOperatorNoise(rem);
 
         const trMatch = rem.match(/\b([1-9]\d{3,5})\b/);
         const trainNo = trMatch ? trMatch[1] : "";
@@ -1728,20 +1895,7 @@
           rem = rem.replace(new RegExp("\\b" + trainNo + "\\b"), " ");
         }
 
-        rem = rem.replace(/[\t|;,\(\)]/g, " ").replace(/\s+/g, " ").replace(/^[\s\-\/]+|[\s\-\/]+$/g, "");
-
-        const tokens = rem.split(/[\s\-]+/).filter(Boolean);
-        const knownCodes = tokens.map(tok => tok.toUpperCase()).filter(tok => Boolean(appState.stations[tok]));
-        let location = "";
-        if (knownCodes.length >= 2) {
-          location = knownCodes[0] + " - " + knownCodes[knownCodes.length - 1];
-        } else if (knownCodes.length === 1) {
-          location = knownCodes[0];
-        } else if (rem) {
-          const parts = rem.split(/\s+-\s+|\s*-\s*/).map(p => abbreviateStationName(p.trim())).filter(Boolean);
-          location = parts.join(" - ");
-        }
-        if (!location) location = "GLI";
+        const location = extractStationsFromLine(rem, canonicalOp);
 
         parsed.push({
           trainNo: trainNo,
@@ -1755,44 +1909,17 @@
         });
       }
 
-      // Fallback si aucune tache connue n'a ete trouvee mais qu'il y a des lignes avec des horaires HH:MM
-      if (parsed.length === 0) {
-        for (const line of rawLines) {
-          const times = Array.from(line.matchAll(timeRxGlobal)).map(x => x[1]);
-          if (times.length > 0) {
-            const t1 = times[0].padStart(5, "0");
-            const t2 = times[1] ? times[1].padStart(5, "0") : "";
-            let rem = line;
-            times.forEach(t => { rem = rem.replace(t, " "); });
-            const trMatch = rem.match(/\b([1-9]\d{3,5})\b/);
-            const trainNo = trMatch ? trMatch[1] : "";
-            if (trainNo) rem = rem.replace(trainNo, " ");
-            rem = rem.replace(/\s+/g, " ").trim();
-            parsed.push({
-              trainNo: trainNo,
-              type: "TRANSFER",
-              location: rem || "GLI",
-              startTime: t1,
-              endTime: t2,
-              realStartTime: "",
-              realEndTime: "",
-              notesAndDelays: ""
-            });
-          }
-        }
-      }
-
       if (parsed.length > 0) {
         appState.activities = mergeSameTrainLegs(parsed);
         expandedActivityIdx = null;
         renderAll();
         saveState();
         document.getElementById("raw-text-box").classList.add("hidden");
-        showStatus(appState.activities.length + " t\u00e2ches g\u00e9n\u00e9r\u00e9es avec succ\u00e8s !");
+        showStatus("Prestation " + (appState.serviceNumber || "") + " : " + appState.activities.length + " t\u00e2ches g\u00e9n\u00e9r\u00e9es avec succ\u00e8s !");
       } else {
         renderAll();
         saveState();
-        showStatus("Aucune t\u00e2che ou heure (HH:MM) d\u00e9tect\u00e9e dans ce texte.");
+        showStatus("Aucune t\u00e2che reconnue dans ce document.");
       }
     }
 
@@ -2329,30 +2456,53 @@
       let matchedDriverText = "";
       const matchedPageNumbers = [];
       const targetDriver = (appState.driverName || "BRASSEUR").trim();
-      const nameParts = targetDriver.split(/\s+/).filter(p => p.length > 2);
+      const allPagesTexts = [];
+      let detectedServiceNo = "";
 
       for (let i = 1; i <= pdf.numPages; i++) {
         const p = await pdf.getPage(i);
         const content = await p.getTextContent();
-        const rowsMap = new Map();
+        // Regrouper les elements d'une meme ligne avec une tolerance verticale souple (3.5 pt) sans effet de bord d'arrondi
+        const rawItems = [];
         for (const it of content.items) {
           if (!it.str || !it.str.trim()) continue;
-          const y = it.transform ? Math.round(it.transform[5] / 4) * 4 : 0;
+          const y = it.transform ? it.transform[5] : 0;
           const x = it.transform ? it.transform[4] : 0;
-          if (!rowsMap.has(y)) rowsMap.set(y, []);
-          rowsMap.get(y).push({ x, str: it.str.trim() });
+          rawItems.push({ x, y, str: it.str.trim() });
         }
-        const sortedYs = Array.from(rowsMap.keys()).sort((a, b) => b - a);
-        const pageLines = sortedYs.map(y => {
-          const rowItems = rowsMap.get(y).sort((a, b) => a.x - b.x);
-          return rowItems.map(r => r.str).join(" ");
+        rawItems.sort((a, b) => b.y - a.y || a.x - b.x);
+        const rows = [];
+        for (const item of rawItems) {
+          let row = rows.find(r => Math.abs(r.y - item.y) <= 3.5);
+          if (!row) {
+            row = { y: item.y, items: [] };
+            rows.push(row);
+          }
+          row.items.push(item);
+        }
+        const pageLines = rows.map(r => {
+          r.items.sort((a, b) => a.x - b.x);
+          return r.items.map(it => it.str).join(" ");
         });
-        const pageText = pageLines.join("\n");
+        const pageText = normalizeServicePdfText(pageLines.join("\n"));
+        allPagesTexts.push({ pageNum: i, text: pageText });
         fullText += pageText + "\n";
 
-        if (nameParts.length > 0 && nameParts.some(part => pageText.toLowerCase().includes(part.toLowerCase()))) {
-          matchedDriverText += pageText + "\n";
-          matchedPageNumbers.push(i);
+        if (isPageOwnedByDriver(pageText, targetDriver)) {
+          const headerOnly = pageText.replace(/[^\n]*\+32[\d\s]+;?\s*[A-Z0-9\-]*[^\n]*/gi, " ");
+          const srvMatch = headerOnly.match(/\b((?:BCHA|BANT|STHL|SLAL)[\s\-]*\d{2,4})\b/i);
+          if (srvMatch && !detectedServiceNo) {
+            detectedServiceNo = srvMatch[1].replace(/\s+/g, "").toUpperCase();
+          }
+        }
+      }
+
+      for (const pageObj of allPagesTexts) {
+        const headerOnly = pageObj.text.replace(/[^\n]*\+32[\d\s]+;?\s*[A-Z0-9\-]*[^\n]*/gi, " ");
+        const hasSameServiceNo = detectedServiceNo && headerOnly.toUpperCase().includes(detectedServiceNo);
+        if (isPageOwnedByDriver(pageObj.text, targetDriver) || hasSameServiceNo) {
+          matchedDriverText += pageObj.text + "\n";
+          matchedPageNumbers.push(pageObj.pageNum);
         }
       }
 
@@ -2572,6 +2722,15 @@
         if (text) {
           const detectedDate = extractDateFromServiceText(text);
           if (detectedDate) appState.serviceDate = detectedDate;
+        }
+
+        // Si c'est un PDF Lineas contenant du texte extractible, le moteur multi-pages local traite toutes les pages du conducteur instantanément et sans erreur
+        if (file.type === "application/pdf" && text && text.trim().length > 30) {
+          renderServiceSheetPreview();
+          document.getElementById("raw-service-input").value = text;
+          await parsePastedServiceText();
+          event.target.value = "";
+          return;
         }
 
         const apiKey = localStorage.getItem("railsynthese_gemini_key");

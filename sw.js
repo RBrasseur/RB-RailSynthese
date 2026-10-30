@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rb-railsynthese-pwa-v3';
+const CACHE_NAME = 'rb-railsynthese-pwa-v5';
 const ASSETS = [
   './',
   './index.html',
