@@ -2791,6 +2791,155 @@
       }
     }
 
+    function triggerBlobDownload(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 600);
+    }
+
+    async function discoverGeminiModels(apiKey) {
+      const defaultModels = ["gemini-2.5-flash", "gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-2.5-pro"];
+      try {
+        const resp = await fetch("https://generativelanguage.googleapis.com/v1beta/models?key=" + encodeURIComponent(apiKey));
+        const data = await resp.json();
+        if (!resp.ok || (data && data.error)) {
+          const errMsg = (data && data.error && data.error.message) ? data.error.message : ("HTTP " + resp.status);
+          throw new Error(errMsg);
+        }
+        if (!data || !Array.isArray(data.models)) return defaultModels;
+
+        const validNames = data.models
+          .filter(m => {
+            const methods = Array.isArray(m.supportedGenerationMethods) ? m.supportedGenerationMethods : [];
+            if (!methods.includes("generateContent")) return false;
+            const n = String(m.name || "").toLowerCase();
+            if (!n.includes("gemini")) return false;
+            if (/embedding|imagen|veo|tts|audio|robotics|computer|aqa|gemma|learnlm|thinking-exp|1\.0|1\.5/.test(n)) return false;
+            return true;
+          })
+          .map(m => String(m.name).replace(/^models\//, ""));
+
+        if (validNames.length === 0) return defaultModels;
+
+        const scoreModel = (name) => {
+          const n = name.toLowerCase();
+          if (n === "gemini-2.5-flash") return 100;
+          if (n === "gemini-flash-latest") return 96;
+          if (n.startsWith("gemini-2.5-flash") && !n.includes("lite") && !n.includes("image")) return 92;
+          if (n.startsWith("gemini-3") && n.includes("flash") && !n.includes("image")) return 90;
+          if (n === "gemini-2.5-flash-lite") return 86;
+          if (n.includes("flash") && !n.includes("image") && !n.includes("8b")) return 80;
+          if (n === "gemini-2.5-pro" || n === "gemini-pro-latest") return 75;
+          if (n.includes("pro") && !n.includes("image")) return 70;
+          return 50;
+        };
+
+        validNames.sort((a, b) => scoreModel(b) - scoreModel(a));
+        return validNames.slice(0, 4);
+      } catch (err) {
+        if (/API key not valid|API_KEY_INVALID|permission|unauthenticated/i.test(err.message)) {
+          throw err;
+        }
+        return defaultModels;
+      }
+    }
+
+    function extractJsonFromGeminiResult(result) {
+      const candidates = (result && Array.isArray(result.candidates)) ? result.candidates : [];
+      if (candidates.length === 0) return null;
+      const parts = (candidates[0].content && Array.isArray(candidates[0].content.parts)) ? candidates[0].content.parts : [];
+      if (parts.length === 0) return null;
+
+      // Ignorer les parties de reflexion interne ("thought": true) de Gemini 2.5 et parcourir de la fin vers le debut
+      const nonThoughtParts = parts.filter(p => !p.thought && typeof p.text === "string");
+      const orderedParts = [...nonThoughtParts.reverse(), ...parts.filter(p => typeof p.text === "string").reverse()];
+
+      for (const part of orderedParts) {
+        const txt = part.text.trim();
+        const firstBrace = txt.indexOf("{");
+        const lastBrace = txt.lastIndexOf("}");
+        if (firstBrace !== -1 && lastBrace > firstBrace) {
+          const candidateJson = txt.slice(firstBrace, lastBrace + 1);
+          try {
+            return JSON.parse(candidateJson);
+          } catch (e1) {
+            try {
+              const cleaned = candidateJson
+                .replace(/,\s*([\x7d\]])/g, "$1")
+                .replace(/[\u0000-\u0019]+/g, " ");
+              return JSON.parse(cleaned);
+            } catch (e2) {}
+          }
+        }
+      }
+      return null;
+    }
+
+    async function callGeminiVisionJSON(promptText, base64Data, apiKey) {
+      const modelsToTry = await discoverGeminiModels(apiKey);
+      const errors = [];
+
+      for (const modelName of modelsToTry) {
+        for (const useJsonMime of [true, false]) {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 35000);
+          try {
+            const payload = {
+              contents: [{
+                parts: [
+                  { text: promptText },
+                  { inlineData: { mimeType: "image/jpeg", data: base64Data } }
+                ]
+              }]
+            };
+            if (useJsonMime) {
+              payload.generationConfig = { responseMimeType: "application/json" };
+            }
+
+            const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + modelName + ":generateContent?key=" + encodeURIComponent(apiKey), {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              signal: controller.signal,
+              body: JSON.stringify(payload)
+            });
+            clearTimeout(timeoutId);
+
+            const result = await response.json();
+            if (!response.ok || (result && result.error)) {
+              const errMsg = (result && result.error && result.error.message) ? result.error.message : ("HTTP " + response.status);
+              // Si le modele refuse responseMimeType, on reessaie immediatement sans responseMimeType
+              if (useJsonMime && response.status === 400 && /mime|json|generation_config/i.test(errMsg)) {
+                continue;
+              }
+              errors.push(modelName + ": " + errMsg);
+              break;
+            }
+
+            const parsedObj = extractJsonFromGeminiResult(result);
+            if (parsedObj) {
+              return parsedObj;
+            } else {
+              errors.push(modelName + ": R\u00e9ponse reçue mais JSON non reconnu");
+              break;
+            }
+          } catch (err) {
+            clearTimeout(timeoutId);
+            const msg = err.name === "AbortError" ? "D\u00e9lai d'attente d\u00e9pass\u00e9 (35s)" : err.message;
+            errors.push(modelName + ": " + msg);
+            break;
+          }
+        }
+      }
+      throw new Error(errors[0] || "Aucun mod\u00e8le Gemini disponible");
+    }
+
     async function extractTrainBulletinWithGemini(idx, imageDataUrl, pdfText, apiKey) {
       const apiCompressedUrl = await compressImageDataUrl(imageDataUrl, 1280, 0.78);
       const base64Data = apiCompressedUrl.split(",")[1];
@@ -2824,65 +2973,25 @@
         '  "a1_case19_4_mass": "masse totale en case 19.4 colonne a.1",\n' +
         '  "a1_case20_41_mf": "masse freinee totale en case 20.41 colonne a.1",\n' +
         '  "a1_case20_42_percent": "pourcentage de freinage en case 20.42 colonne a.1"\n' +
-        '}';
+        '}' + (pdfText ? "\nTexte extrait du PDF:\n" + pdfText : "");
 
-      const modelsToTry = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
-      let lastErrorMsg = "Aucune r\u00e9ponse de l'IA";
-
-      for (const modelName of modelsToTry) {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000);
-        try {
-          const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + modelName + ":generateContent?key=" + encodeURIComponent(apiKey), {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            signal: controller.signal,
-            body: JSON.stringify({
-              contents: [{
-                parts: [
-                  { text: prompt + (pdfText ? "\nTexte extrait du PDF:\n" + pdfText : "") },
-                  { inline_data: { mime_type: "image/jpeg", data: base64Data } }
-                ]
-              }],
-              generationConfig: { responseMimeType: "application/json" }
-            })
-          });
-          clearTimeout(timeoutId);
-
-          const result = await response.json();
-          if (!response.ok || (result && result.error)) {
-            lastErrorMsg = (result && result.error && result.error.message) ? result.error.message : ("HTTP " + response.status);
-            continue;
-          }
-
-          let rawJson = result && result.candidates && result.candidates[0] && result.candidates[0].content && result.candidates[0].content.parts && result.candidates[0].content.parts[0]
-            ? result.candidates[0].content.parts[0].text
-            : null;
-
-          if (rawJson) {
-            rawJson = rawJson.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
-            const parsed = JSON.parse(rawJson);
-            Object.assign(appState.trains[idx], parsed);
-            normalizeTrainCase1(appState.trains[idx]);
-            appState.trains[idx].case4_date = formatToDDMMYYYY(appState.trains[idx].case4_date || "");
-            appState.trains[idx].case5_from = abbreviateStationName(appState.trains[idx].case5_from || "");
-            appState.trains[idx].case6_to = abbreviateStationName(appState.trains[idx].case6_to || "");
-            appState.trains[idx].case9_active = Boolean(appState.trains[idx].case9_vmax !== "");
-            appState.trains[idx].case1_openCountries = [];
-            renderTrainBulletins();
-            await saveState();
-            showStatus("REBU du train " + (appState.trains[idx].case3_trainNo || "") + " extrait par IA et sauvegard\u00e9 !");
-            return;
-          }
-        } catch (err) {
-          clearTimeout(timeoutId);
-          lastErrorMsg = err.name === "AbortError" ? "D\u00e9lai d'attente d\u00e9pass\u00e9 (r\u00e9seau lent)" : err.message;
-        }
+      try {
+        const parsed = await callGeminiVisionJSON(prompt, base64Data, apiKey);
+        Object.assign(appState.trains[idx], parsed);
+        normalizeTrainCase1(appState.trains[idx]);
+        appState.trains[idx].case4_date = formatToDDMMYYYY(appState.trains[idx].case4_date || "");
+        appState.trains[idx].case5_from = abbreviateStationName(appState.trains[idx].case5_from || "");
+        appState.trains[idx].case6_to = abbreviateStationName(appState.trains[idx].case6_to || "");
+        appState.trains[idx].case9_active = Boolean(appState.trains[idx].case9_vmax !== "");
+        appState.trains[idx].case1_openCountries = [];
+        renderTrainBulletins();
+        await saveState();
+        showStatus("REBU du train " + (appState.trains[idx].case3_trainNo || "") + " extrait par IA et sauvegard\u00e9 !");
+      } catch (err) {
+        renderTrainBulletins();
+        await saveState();
+        showStatus("Lecture IA impossible (" + err.message + ").");
       }
-
-      renderTrainBulletins();
-      await saveState();
-      showStatus("Lecture IA impossible (" + lastErrorMsg + "). V\u00e9rifiez votre cl\u00e9 Gemini dans IA / Sauveg. ou compl\u00e9tez le REBU ci-dessous.");
     }
 
     async function handleServiceUpload(event) {
@@ -2922,59 +3031,46 @@
           return;
         }
 
-        const apiKey = localStorage.getItem("railsynthese_gemini_key");
+        const apiKey = (localStorage.getItem("railsynthese_gemini_key") || "").trim();
         if (apiKey) {
           try {
-          const base64Data = imageDataUrl.split(",")[1];
-          const knownOpsList = getActiveOpTypes().join("|");
-          const prompt = "Extrais uniquement la fiche de service du conducteur : " + targetDriver + " (ignore les fiches des autres agents). Repere la date exacte inscrite sur la fiche de prestation et renvoie-la obligatoirement au format JJ/MM/AAAA. Repere aussi le numero de service (souvent compose de BCHA suivi de 3 chiffres, ex: BCHA104). Applique les regles Lineas/SIBELIT : utilise les codes gares abreges (GLI, FGZH, FCLF, FMS, FDD, FJR...), fusionne les LEG consecutifs qui gardent exactement le meme numero de train, mais separe-les si le numero change. Utilise en priorite ces types de taches connus (" + knownOpsList + ") ou tout nouveau code d operation figurant sur la fiche. Renvoie UNIQUEMENT un JSON de la forme :\n" +
-            '{\n' +
-            '  "serviceDate": "JJ/MM/AAAA",\n' +
-            '  "serviceNumber": "BCHA...",\n' +
-            '  "expectedDuration": "HH:MM",\n' +
-            '  "activities": [\n' +
-            '    { "trainNo": "37946 ou vide", "type": "' + knownOpsList + '", "location": "code gare", "startTime": "HH:MM", "endTime": "HH:MM ou vide pour LEASE", "realStartTime": "", "realEndTime": "", "notesAndDelays": "" }\n' +
-            '  ]\n' +
-            '}';
-          const resp = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents: [{
-                parts: [
-                  { text: prompt + (text ? "\nTexte PDF:\n" + text : "") },
-                  { inline_data: { mime_type: "image/jpeg", data: base64Data } }
-                ]
-              }],
-              generationConfig: { responseMimeType: "application/json" }
-            })
-          });
-          const data = await resp.json();
-          const jsonStr = data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0] ? data.candidates[0].content.parts[0].text : null;
-          if (jsonStr) {
-            const parsed = JSON.parse(jsonStr);
-            if (parsed.serviceDate) appState.serviceDate = formatToDDMMYYYY(parsed.serviceDate);
-            if (parsed.serviceNumber) appState.serviceNumber = parsed.serviceNumber;
-            if (parsed.expectedDuration) appState.expectedDuration = parsed.expectedDuration;
-            if (Array.isArray(parsed.activities)) {
-              const currentList = getActiveOpTypes();
-              parsed.activities.forEach(a => {
-                if (a.type && !currentList.includes(a.type)) currentList.push(a.type);
-              });
-              appState.activities = mergeSameTrainLegs(parsed.activities.map(a => ({
-                realStartTime: "",
-                realEndTime: "",
-                notesAndDelays: "",
-                ...a
-              })));
+            const apiCompressedUrl = await compressImageDataUrl(imageDataUrl, 1280, 0.78);
+            const base64Data = apiCompressedUrl.split(",")[1];
+            const knownOpsList = getActiveOpTypes().join("|");
+            const prompt = "Extrais uniquement la fiche de service du conducteur : " + targetDriver + " (ignore les fiches des autres agents). Repere la date exacte inscrite sur la fiche de prestation et renvoie-la obligatoirement au format JJ/MM/AAAA. Repere aussi le numero de service (souvent compose de BCHA suivi de 3 chiffres, ex: BCHA104). Applique les regles Lineas/SIBELIT : utilise les codes gares abreges (GLI, FGZH, FCLF, FMS, FDD, FJR...), fusionne les LEG consecutifs qui gardent exactement le meme numero de train, mais separe-les si le numero change. Utilise en priorite ces types de taches connus (" + knownOpsList + ") ou tout nouveau code d operation figurant sur la fiche. Renvoie UNIQUEMENT un JSON de la forme :\n" +
+              '{\n' +
+              '  "serviceDate": "JJ/MM/AAAA",\n' +
+              '  "serviceNumber": "BCHA...",\n' +
+              '  "expectedDuration": "HH:MM",\n' +
+              '  "activities": [\n' +
+              '    { "trainNo": "37946 ou vide", "type": "' + knownOpsList + '", "location": "code gare", "startTime": "HH:MM", "endTime": "HH:MM ou vide pour LEASE", "realStartTime": "", "realEndTime": "", "notesAndDelays": "" }\n' +
+              '  ]\n' +
+              '}' + (text ? "\nTexte PDF:\n" + text : "");
+
+            const parsed = await callGeminiVisionJSON(prompt, base64Data, apiKey);
+            if (parsed) {
+              if (parsed.serviceDate) appState.serviceDate = formatToDDMMYYYY(parsed.serviceDate);
+              if (parsed.serviceNumber) appState.serviceNumber = parsed.serviceNumber;
+              if (parsed.expectedDuration) appState.expectedDuration = parsed.expectedDuration;
+              if (Array.isArray(parsed.activities)) {
+                const currentList = getActiveOpTypes();
+                parsed.activities.forEach(a => {
+                  if (a.type && !currentList.includes(a.type)) currentList.push(a.type);
+                });
+                appState.activities = mergeSameTrainLegs(parsed.activities.map(a => ({
+                  realStartTime: "",
+                  realEndTime: "",
+                  notesAndDelays: "",
+                  ...a
+                })));
+              }
+              expandedActivityIdx = null;
+              renderAll();
+              await saveState();
+              showStatus("Prestation du " + (appState.serviceDate || "jour") + " (" + (appState.serviceNumber || "") + ") import\u00e9e !");
+              event.target.value = "";
+              return;
             }
-            expandedActivityIdx = null;
-            renderAll();
-            await saveState();
-            showStatus("Prestation du " + (appState.serviceDate || "jour") + " (" + (appState.serviceNumber || "") + ") import\u00e9e !");
-            event.target.value = "";
-            return;
-          }
           } catch (apiErr) {
             console.warn("Repli sur le lecteur PDF local:", apiErr);
           }
@@ -3333,10 +3429,20 @@
       }
     }
 
-    function saveGeminiKey() {
+    async function saveGeminiKey() {
       const val = document.getElementById("gemini-key-input").value.trim();
       localStorage.setItem("railsynthese_gemini_key", val);
-      showStatus("Cl\u00e9 API Gemini enregistr\u00e9e sur le t\u00e9l\u00e9phone.");
+      if (!val) {
+        showStatus("Cl\u00e9 API Gemini effac\u00e9e.");
+        return;
+      }
+      showStatus("V\u00e9rification de la cl\u00e9 API Gemini en cours...");
+      try {
+        const models = await discoverGeminiModels(val);
+        showStatus("Cl\u00e9 API Gemini valid\u00e9e ! Mod\u00e8le actif : " + models[0]);
+      } catch (err) {
+        showStatus("Attention : Cl\u00e9 enregistr\u00e9e mais refus\u00e9e par Google (" + err.message + ").");
+      }
     }
 
     async function saveDayToHistory(silent) {
