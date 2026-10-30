@@ -39,7 +39,7 @@
   <!-- BANNIERE D'INSTALLATION NATIVE ANDROID -->
   <div id="pwa-install-banner" class="no-print hidden bg-emerald-950 border-b border-emerald-700 px-4 py-2.5 flex items-center justify-between gap-2">
     <div class="flex items-center gap-2.5">
-      <div class="w-7 h-7 rounded-lg bg-amber-500 text-slate-950 font-black text-xs flex items-center justify-center shrink-0">RS</div>
+      <div class="w-9 h-9 rounded-lg bg-amber-500 text-slate-950 flex flex-col items-center justify-center relative shrink-0 select-none shadow"><span class="font-black text-xs leading-none -mt-1">RS</span><span class="font-extrabold text-[6px] leading-none absolute bottom-0.5 right-1">by RB</span></div>
       <div class="text-xs text-emerald-100 leading-tight">
         <strong>Installer RB RailSynth&egrave;se</strong> sur votre t&eacute;l&eacute;phone (vraie application plein &eacute;cran)
       </div>
@@ -163,15 +163,16 @@
   <!-- BARRE SUPERIEURE MOBILE -->
   <header class="no-print sticky top-0 z-30 bg-slate-900/95 backdrop-blur border-b border-slate-800 px-3.5 py-2.5 flex items-center justify-between">
     <div class="flex items-center gap-2.5">
-      <div class="w-8 h-8 rounded-xl bg-amber-500 flex items-center justify-center text-slate-950 font-black text-sm shadow">
-        RS
+      <div class="w-10 h-10 rounded-xl bg-amber-500 flex flex-col items-center justify-center text-slate-950 shadow relative select-none shrink-0">
+        <span class="font-black text-sm leading-none -mt-1.5">RS</span>
+        <span class="font-extrabold text-[6.5px] leading-none absolute bottom-1 right-1">by RB</span>
       </div>
       <div>
         <div class="flex items-center gap-1.5">
           <h1 class="text-sm font-bold text-white leading-tight">RB RailSynth&egrave;se</h1>
           <span id="autosave-indicator" class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800/60 font-medium">Sauvegard&eacute;</span>
         </div>
-        <p class="text-[11px] text-slate-400"><span id="header-driver-display">R&eacute;my BRASSEUR</span> &bull; Lineas / SIBELIT</p>
+        <p class="text-[11px] text-slate-400"><span id="header-driver-display">Conducteur</span> &bull; Lineas / SIBELIT</p>
       </div>
     </div>
 
@@ -223,7 +224,7 @@
         <label class="block text-[10px] font-semibold uppercase text-slate-400 mb-1">
           Nom du conducteur (Recherch&eacute; dans le fichier des services &amp; m&eacute;moris&eacute;)
         </label>
-        <input type="text" id="driver-name" placeholder="Ex: R&eacute;my BRASSEUR" oninput="syncHeader()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs font-bold text-white focus:border-amber-500 focus:outline-none" />
+        <input type="text" id="driver-name" placeholder="Ex: Nom Pr&eacute;nom" oninput="syncHeader()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs font-bold text-white focus:border-amber-500 focus:outline-none" />
       </div>
 
       <div class="grid grid-cols-3 gap-2">
@@ -569,7 +570,7 @@
     function getShareableAppUrl() {
       const saved = localStorage.getItem("railsynthese_share_url");
       if (saved && saved.trim() !== "") return saved.trim();
-      if (location.protocol.startsWith("http")) return location.href.split("#")[0];
+      if (location.protocol.startsWith("http")) return (location.origin + location.pathname);
       return "https://votre-pseudo.github.io/rb-railsynthese/";
     }
 
@@ -673,10 +674,10 @@
     const REBU_COUNTRIES = ["BE", "LU", "FR", "CH", "DE", "NL"];
 
     let appState = {
-      driverName: "R\u00e9my BRASSEUR",
-      serviceDate: "14/10/2026",
-      serviceNumber: "BCHA104",
-      expectedDuration: "08:40",
+      driverName: "",
+      serviceDate: "",
+      serviceNumber: "",
+      expectedDuration: "",
       serviceSheetImages: [],
       serviceSheetName: "",
       pdfIncludeServiceDoc: false,
@@ -814,7 +815,7 @@
           appState = {
             ...appState,
             ...savedState,
-            driverName: lastDriver || savedState.driverName || "R\u00e9my BRASSEUR",
+            driverName: lastDriver || savedState.driverName || "",
             serviceDate: formatToDDMMYYYY(savedState.serviceDate || ""),
             serviceSheetImages: Array.isArray(savedState.serviceSheetImages) ? savedState.serviceSheetImages : [],
             serviceSheetName: savedState.serviceSheetName || "",
@@ -830,17 +831,12 @@
               : { ...BASE_STATIONS }
           };
         } else {
-          if (lastDriver) appState.driverName = lastDriver;
-          loadDemoService(true);
-          loadSampleTrain47800(true);
+          appState.driverName = lastDriver || "";
         }
 
         const key = localStorage.getItem("railsynthese_gemini_key");
         if (key) document.getElementById("gemini-key-input").value = key;
-      } catch (e) {
-        loadDemoService(true);
-        loadSampleTrain47800(true);
-      }
+      } catch (e) {}
       renderAll();
     });
 
@@ -1188,7 +1184,7 @@
         await saveDayToHistory(true);
       }
 
-      const keptDriver = localStorage.getItem("railsynthese_last_driver_name") || appState.driverName || "R\u00e9my BRASSEUR";
+      const keptDriver = localStorage.getItem("railsynthese_last_driver_name") || appState.driverName || "";
       const keptStations = appState.stations || { ...BASE_STATIONS };
       const keptOpTypes = getActiveOpTypes();
 
@@ -1283,7 +1279,7 @@
     }
 
     function renderAll() {
-      document.getElementById("driver-name").value = appState.driverName || "R\u00e9my BRASSEUR";
+      document.getElementById("driver-name").value = appState.driverName || "";
       document.getElementById("header-driver-display").textContent = appState.driverName || "Conducteur";
       document.getElementById("service-date").value = formatToDDMMYYYY(appState.serviceDate || "");
       document.getElementById("service-number").value = appState.serviceNumber || "";
@@ -1619,50 +1615,169 @@
     }
 
     function parsePastedServiceText() {
-      const raw = document.getElementById("raw-service-input").value;
-      if (!raw.trim()) return;
+      const rawInput = document.getElementById("raw-service-input").value;
+      if (!rawInput || !rawInput.trim()) {
+        showStatus("Le cadre de texte est vide. Collez ou importez d'abord une prestation.");
+        return;
+      }
+
+      // Normaliser les heures (ex: 10h55 ou 10.55 -> 10:55)
+      let raw = rawInput.replace(/\b([0-2]?\d)[hH\.]([0-5]\d)\b/g, "$1:$2");
 
       const foundDate = extractDateFromServiceText(raw);
       if (foundDate) {
         appState.serviceDate = foundDate;
       }
 
-      const bchaMatch = raw.match(/\b(BCHA\s*\d{3})\b/i);
-      if (bchaMatch) {
+      const bchaMatch = raw.match(/\b([A-Z]{2,5}\s*\d{2,4})\b/i);
+      if (bchaMatch && /BCHA|SIB|LIN/i.test(bchaMatch[1])) {
         appState.serviceNumber = bchaMatch[1].replace(/\s+/g, "").toUpperCase();
       }
 
-      const durMatch = raw.match(/Dur[e\u00e9]e\s*[:=]?\s*(\d{2}:\d{2})/i);
+      const durMatch = raw.match(/Dur[e\u00e9]e\s*[:=]?\s*(\d{1,2}:\d{2})/i);
       if (durMatch) {
-        appState.expectedDuration = durMatch[1];
+        appState.expectedDuration = durMatch[1].padStart(5, "0");
       }
 
-      const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-      const parsed = [];
-      const sortedOpTypes = [...getActiveOpTypes()].sort((a, b) => b.length - a.length);
+      // Nettoyer l'expression "Duree: HH:MM" pour ne pas la confondre avec l'heure d'une tache
+      const cleanedForTasks = raw.replace(/Dur[e\u00e9]e\s*[:=]?\s*\d{1,2}:\d{2}/gi, " ");
 
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        for (const op of sortedOpTypes) {
-          const escapedOp = escapeRegexStr(op);
-          const rx = new RegExp("^(?:([A-Z0-9]{3,8})\\s+)?(" + escapedOp + ")\\s+([A-Z0-9_\\s\\-]+?)(?:\\s+(\\d{2}:\\d{2}))?(?:\\s+(\\d{2}:\\d{2}))?$", "i");
-          const m = line.match(rx);
-          if (m) {
-            let t1 = m[4] || "";
-            let t2 = m[5] || "";
-            if (!t1 && lines[i + 1] && /^\d{2}:\d{2}$/.test(lines[i + 1])) t1 = lines[++i];
-            if (op.toUpperCase() !== "LEASE" && !t2 && lines[i + 1] && /^\d{2}:\d{2}$/.test(lines[i + 1])) t2 = lines[++i];
+      const activeOps = getActiveOpTypes();
+      const sortedOpTypes = [...activeOps].sort((a, b) => b.length - a.length);
+      const opPattern = sortedOpTypes.map(escapeRegexStr).join("|");
+      const opRxGlobal = new RegExp("(?:^|[\\s\\-\\|/;\\(\\),])(" + opPattern + ")(?=$|[\\s\\-\\|/;\\(\\),])", "gi");
+      const opRxSingle = new RegExp("(?:^|[\\s\\-\\|/;\\(\\),])(" + opPattern + ")(?=$|[\\s\\-\\|/;\\(\\),])", "i");
+      const timeRxGlobal = /\b([0-2]?\d:[0-5]\d)\b/g;
+
+      const rawLines = cleanedForTasks.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      const expandedLines = [];
+
+      // Si une ligne contient plusieurs taches collees (ex: extraction PDF sur une seule ligne), on la decoupe
+      for (const line of rawLines) {
+        const matches = [];
+        let m;
+        opRxGlobal.lastIndex = 0;
+        while ((m = opRxGlobal.exec(line)) !== null) {
+          const opIndex = m.index + m[0].indexOf(m[1]);
+          matches.push({ op: m[1], index: opIndex });
+        }
+        if (matches.length > 1) {
+          for (let k = 0; k < matches.length; k++) {
+            const curStart = matches[k].index;
+            const nextStart = k + 1 < matches.length ? matches[k + 1].index : line.length;
+            let segStart = curStart;
+            if (k === 0) {
+              const prefix = line.slice(0, curStart);
+              const leadTr = prefix.match(/(\b[1-9]\d{3,5}\s+)$/);
+              if (leadTr) segStart = curStart - leadTr[1].length;
+            } else {
+              const prevSlice = line.slice(matches[k - 1].index, curStart);
+              const leadTr = prevSlice.match(/(\b[1-9]\d{3,5}\s+)$/);
+              if (leadTr) segStart = curStart - leadTr[1].length;
+            }
+            let segEnd = nextStart;
+            if (k + 1 < matches.length) {
+              const curSlice = line.slice(curStart, nextStart);
+              const nextTr = curSlice.match(/(\b[1-9]\d{3,5}\s+)$/);
+              if (nextTr) segEnd = nextStart - nextTr[1].length;
+            }
+            expandedLines.push(line.slice(segStart, segEnd).trim());
+          }
+        } else {
+          expandedLines.push(line);
+        }
+      }
+
+      const parsed = [];
+      for (let i = 0; i < expandedLines.length; i++) {
+        const line = expandedLines[i];
+        const mOp = line.match(opRxSingle);
+        if (!mOp) continue;
+
+        const matchedOpRaw = mOp[1];
+        const canonicalOp = activeOps.find(o => o.toLowerCase() === matchedOpRaw.toLowerCase()) || matchedOpRaw.toUpperCase();
+
+        let times = Array.from(line.matchAll(timeRxGlobal)).map(x => x[1]);
+        if (times.length === 0 && i + 1 < expandedLines.length && !opRxSingle.test(expandedLines[i + 1])) {
+          const nextTimes = Array.from(expandedLines[i + 1].matchAll(timeRxGlobal)).map(x => x[1]);
+          if (nextTimes.length > 0) {
+            times = times.concat(nextTimes);
+            i++;
+            if (times.length === 1 && canonicalOp.toUpperCase() !== "LEASE" && i + 1 < expandedLines.length && !opRxSingle.test(expandedLines[i + 1])) {
+              const nextTimes2 = Array.from(expandedLines[i + 1].matchAll(timeRxGlobal)).map(x => x[1]);
+              if (nextTimes2.length > 0) {
+                times = times.concat(nextTimes2);
+                i++;
+              }
+            }
+          }
+        }
+
+        const t1 = times[0] ? times[0].padStart(5, "0") : "";
+        const t2 = (canonicalOp.toUpperCase() !== "LEASE" && times[1]) ? times[1].padStart(5, "0") : "";
+
+        let rem = line;
+        times.forEach(t => { rem = rem.replace(t, " "); });
+        rem = rem.replace(new RegExp(escapeRegexStr(matchedOpRaw), "i"), " ");
+        rem = rem.replace(/\b\d{2}[\/\-\.]\d{2}[\/\-\.]20\d{2}\b/g, " ");
+        rem = rem.replace(/\bBCHA\s*\d{3}\b/gi, " ");
+
+        const trMatch = rem.match(/\b([1-9]\d{3,5})\b/);
+        const trainNo = trMatch ? trMatch[1] : "";
+        if (trainNo) {
+          rem = rem.replace(new RegExp("\\b" + trainNo + "\\b"), " ");
+        }
+
+        rem = rem.replace(/[\t|;,\(\)]/g, " ").replace(/\s+/g, " ").replace(/^[\s\-\/]+|[\s\-\/]+$/g, "");
+
+        const tokens = rem.split(/[\s\-]+/).filter(Boolean);
+        const knownCodes = tokens.map(tok => tok.toUpperCase()).filter(tok => Boolean(appState.stations[tok]));
+        let location = "";
+        if (knownCodes.length >= 2) {
+          location = knownCodes[0] + " - " + knownCodes[knownCodes.length - 1];
+        } else if (knownCodes.length === 1) {
+          location = knownCodes[0];
+        } else if (rem) {
+          const parts = rem.split(/\s+-\s+|\s*-\s*/).map(p => abbreviateStationName(p.trim())).filter(Boolean);
+          location = parts.join(" - ");
+        }
+        if (!location) location = "GLI";
+
+        parsed.push({
+          trainNo: trainNo,
+          type: canonicalOp,
+          location: location,
+          startTime: t1,
+          endTime: t2,
+          realStartTime: "",
+          realEndTime: "",
+          notesAndDelays: ""
+        });
+      }
+
+      // Fallback si aucune tache connue n'a ete trouvee mais qu'il y a des lignes avec des horaires HH:MM
+      if (parsed.length === 0) {
+        for (const line of rawLines) {
+          const times = Array.from(line.matchAll(timeRxGlobal)).map(x => x[1]);
+          if (times.length > 0) {
+            const t1 = times[0].padStart(5, "0");
+            const t2 = times[1] ? times[1].padStart(5, "0") : "";
+            let rem = line;
+            times.forEach(t => { rem = rem.replace(t, " "); });
+            const trMatch = rem.match(/\b([1-9]\d{3,5})\b/);
+            const trainNo = trMatch ? trMatch[1] : "";
+            if (trainNo) rem = rem.replace(trainNo, " ");
+            rem = rem.replace(/\s+/g, " ").trim();
             parsed.push({
-              trainNo: m[1] || "",
-              type: op,
-              location: m[3].trim(),
+              trainNo: trainNo,
+              type: "TRANSFER",
+              location: rem || "GLI",
               startTime: t1,
               endTime: t2,
               realStartTime: "",
               realEndTime: "",
               notesAndDelays: ""
             });
-            break;
           }
         }
       }
@@ -1673,11 +1788,11 @@
         renderAll();
         saveState();
         document.getElementById("raw-text-box").classList.add("hidden");
-        showStatus(appState.activities.length + " t\u00e2ches reconnues et g\u00e9n\u00e9r\u00e9es !");
+        showStatus(appState.activities.length + " t\u00e2ches g\u00e9n\u00e9r\u00e9es avec succ\u00e8s !");
       } else {
         renderAll();
         saveState();
-        showStatus("Texte coll\u00e9. Ajustez vos lignes ou utilisez la cl\u00e9 IA pour les formats complexes.");
+        showStatus("Aucune t\u00e2che ou heure (HH:MM) d\u00e9tect\u00e9e dans ce texte.");
       }
     }
 
@@ -2219,7 +2334,20 @@
       for (let i = 1; i <= pdf.numPages; i++) {
         const p = await pdf.getPage(i);
         const content = await p.getTextContent();
-        const pageText = content.items.map(it => it.str).join(" ");
+        const rowsMap = new Map();
+        for (const it of content.items) {
+          if (!it.str || !it.str.trim()) continue;
+          const y = it.transform ? Math.round(it.transform[5] / 4) * 4 : 0;
+          const x = it.transform ? it.transform[4] : 0;
+          if (!rowsMap.has(y)) rowsMap.set(y, []);
+          rowsMap.get(y).push({ x, str: it.str.trim() });
+        }
+        const sortedYs = Array.from(rowsMap.keys()).sort((a, b) => b - a);
+        const pageLines = sortedYs.map(y => {
+          const rowItems = rowsMap.get(y).sort((a, b) => a.x - b.x);
+          return rowItems.map(r => r.str).join(" ");
+        });
+        const pageText = pageLines.join("\n");
         fullText += pageText + "\n";
 
         if (nameParts.length > 0 && nameParts.some(part => pageText.toLowerCase().includes(part.toLowerCase()))) {
@@ -2422,7 +2550,7 @@
       const file = event.target.files[0];
       if (!file) return;
       switchMobileTab("service");
-      const targetDriver = (appState.driverName || "R\u00e9my BRASSEUR").trim();
+      const targetDriver = (appState.driverName || "Conducteur").trim();
       showStatus("Recherche de la prestation de \"" + targetDriver + "\" dans \"" + file.name + "\"..");
 
       try {
@@ -2448,6 +2576,7 @@
 
         const apiKey = localStorage.getItem("railsynthese_gemini_key");
         if (apiKey) {
+          try {
           const base64Data = imageDataUrl.split(",")[1];
           const knownOpsList = getActiveOpTypes().join("|");
           const prompt = "Extrais uniquement la fiche de service du conducteur : " + targetDriver + " (ignore les fiches des autres agents). Repere la date exacte inscrite sur la fiche de prestation et renvoie-la obligatoirement au format JJ/MM/AAAA. Repere aussi le numero de service (souvent compose de BCHA suivi de 3 chiffres, ex: BCHA104). Applique les regles Lineas/SIBELIT : utilise les codes gares abreges (GLI, FGZH, FCLF, FMS, FDD, FJR...), fusionne les LEG consecutifs qui gardent exactement le meme numero de train, mais separe-les si le numero change. Utilise en priorite ces types de taches connus (" + knownOpsList + ") ou tout nouveau code d operation figurant sur la fiche. Renvoie UNIQUEMENT un JSON de la forme :\n" +
@@ -2497,6 +2626,9 @@
             showStatus("Prestation du " + (appState.serviceDate || "jour") + " (" + (appState.serviceNumber || "") + ") import\u00e9e !");
             event.target.value = "";
             return;
+          }
+          } catch (apiErr) {
+            console.warn("Repli sur le lecteur PDF local:", apiErr);
           }
         }
 
@@ -2756,7 +2888,7 @@
         '<div style="border-bottom: 3px solid #0f172a; padding-bottom: 8px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">' +
           '<div>' +
             '<h1 style="font-size: 18px; font-weight: 900; margin: 0;">RB RAILSYNTH&Egrave;SE &mdash; PRESTATION &amp; REBU</h1>' +
-            '<p style="font-size: 12px; margin: 2px 0 0 0; color: #475569;">Conducteur : ' + escapeHtml(appState.driverName || "R\u00e9my BRASSEUR") + ' &bull; Lineas / SIBELIT</p>' +
+            '<p style="font-size: 12px; margin: 2px 0 0 0; color: #475569;">Conducteur : ' + escapeHtml(appState.driverName || "Conducteur") + ' &bull; Lineas / SIBELIT</p>' +
           '</div>' +
           '<div style="text-align: right; font-size: 12px;">' +
             '<div><strong>Date :</strong> ' + escapeHtml(appState.serviceDate) + '</div>' +

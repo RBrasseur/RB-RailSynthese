@@ -1,7 +1,7 @@
 {
   "name": "RB RailSynthèse",
   "short_name": "RB RailSynthèse",
-  "description": "Synthèse des prestations et bulletins de freinage REBU - Lineas / SIBELIT",
+  "description": "Synthèse des prestations et bulletins de freinage REBU - Lineas / SIBELIT (by RB)",
   "id": "./",
   "start_url": "./index.html",
   "scope": "./",
