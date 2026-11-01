@@ -502,7 +502,7 @@
         </p>
 
         <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-[11px] font-mono text-amber-300 break-all" id="cloud-path-preview">
-          RB RailSynth&egrave;se / AAAA / MM - Mois / JJ-MM-AAAA_Service.pdf
+          Travail / AAAA / MM - Mois / JJ-MM-AAAA_Service.pdf
         </div>
 
         <div class="space-y-1.5">
@@ -512,7 +512,7 @@
             <option value="onedrive_share">Microsoft OneDrive (via menu Cloud sans stocker)</option>
             <option value="icloud_share">Apple iCloud / Fichiers (via menu Cloud sans stocker)</option>
             <option value="dropbox_share">Dropbox / Proton / Nextcloud (via menu Cloud sans stocker)</option>
-            <option value="webhook_auto">Cloud 1-Clic Auto-Dossiers (Cr&eacute;e RB RailSynth&egrave;se / AAAA / MM - Mois)</option>
+            <option value="webhook_auto">Cloud 1-Clic Auto-Dossiers (Cr&eacute;e Travail / AAAA / MM - Mois)</option>
             <option value="folder_picker">Dossier Cloud synchronis&eacute; sur l'appareil (Auto-Dossiers 1-Clic)</option>
             <option value="mail_share">Envoyer directement par Mail (avec PDF joint)</option>
           </select>
@@ -531,7 +531,7 @@
           </summary>
           <div class="space-y-2 mt-2.5 pt-2 border-t border-slate-800 text-[11px] text-slate-300">
             <p>
-              Si vous souhaitez que le bouton <strong>Cloud</strong> cr&eacute;e tout seul les dossiers <code>RB RailSynth&egrave;se / AAAA / MM - Mois</code> sur votre Cloud en 1 clic sans ouvrir le menu du t&eacute;l&eacute;phone, collez ici l'URL de votre passerelle (Google Apps Script / Webhook / Nextcloud) :
+              Si vous souhaitez que le bouton <strong>Cloud</strong> cr&eacute;e tout seul les dossiers <code>Travail / AAAA / MM - Mois</code> sur votre Cloud en 1 clic sans ouvrir le menu du t&eacute;l&eacute;phone, collez ici l'URL de votre passerelle (Google Apps Script / Webhook / Nextcloud) :
             </p>
             <input type="url" id="cloud-webhook-url-input" oninput="saveCloudSettings()" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-mono text-white focus:border-sky-400 focus:outline-none" />
             <button onclick="copyGoogleDriveAppsScriptCode()" class="w-full py-1.5 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-amber-300 font-bold text-[11px]">
@@ -3686,7 +3686,7 @@
 
       // Nom strict : JJ-MM-AAAA_Service.pdf (compatible tous Clouds & OS)
       const fileName = dd + "-" + mmStr + "-" + yyyy + "_" + cleanService + ".pdf";
-      const rootFolder = "RB RailSynth\u00e8se";
+      const rootFolder = "Travail";
       const yearFolder = yyyy;
       const folderPath = rootFolder + "/" + yearFolder + "/" + monthFolder;
       const displayFullPath = rootFolder + " / " + yearFolder + " / " + monthFolder + " / " + fileName;
@@ -3709,7 +3709,7 @@
       const el = document.getElementById("cloud-path-preview");
       if (!el) return;
       if (!appState.serviceDate && !appState.serviceNumber) {
-        el.textContent = "RB RailSynth\u00e8se / AAAA / MM - Mois / JJ-MM-AAAA_Service.pdf";
+        el.textContent = "Travail / AAAA / MM - Mois / JJ-MM-AAAA_Service.pdf";
         return;
       }
       const meta = getServicePdfExportMeta();
@@ -3904,7 +3904,7 @@
         "}",
         "function doPost(e) {",
         "  var data = JSON.parse(e.postData.contents);",
-        "  var root = getOrCreateSubFolder(DriveApp.getRootFolder(), data.rootFolder || 'RB RailSynthèse');",
+        "  var root = getOrCreateSubFolder(DriveApp.getRootFolder(), data.rootFolder || 'Travail');",
         "  var yearDir = getOrCreateSubFolder(root, data.yearFolder || '2026');",
         "  var monthDir = getOrCreateSubFolder(yearDir, data.monthFolder || '01 - Janvier');",
         "  var blob = Utilities.newBlob(Utilities.base64Decode(data.pdfBase64), 'application/pdf', data.fileName);",
