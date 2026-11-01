@@ -173,7 +173,7 @@
         </div>
         <p class="text-xs text-slate-300 leading-relaxed">Souhaitez-vous enregistrer la prestation en cours avant de tout effacer pour le nouveau service ?</p>
         <div class="space-y-2 pt-1">
-          <button onclick="confirmNewPrestation('mail_and_history')" class="w-full py-2.5 px-3 rounded-xl bg-sky-500 text-slate-950 text-xs font-bold shadow">Oui, envoyer le PDF par Mail + Archiver</button>
+          <button onclick="confirmNewPrestation('cloud_and_history')" class="w-full py-2.5 px-3 rounded-xl bg-sky-500 text-slate-950 text-xs font-bold shadow">Oui, envoyer vers Cloud / Mail + Archiver</button>
           <button onclick="confirmNewPrestation('pdf_and_history')" class="w-full py-2.5 px-3 rounded-xl bg-emerald-500 text-slate-950 text-xs font-bold shadow">Oui, t&eacute;l&eacute;charger en PDF + Archiver</button>
           <button onclick="confirmNewPrestation('history_only')" class="w-full py-2.5 px-3 rounded-xl bg-indigo-600 text-white text-xs font-bold shadow">Oui, enregistrer dans l'historique</button>
           <button onclick="confirmNewPrestation('discard')" class="w-full py-2.5 px-3 rounded-xl bg-rose-950/80 border border-rose-700 text-rose-200 text-xs font-bold">Non, effacer sans enregistrer</button>
@@ -211,10 +211,10 @@
       <button onclick="saveDayToHistory()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center justify-center" title="Enregistrer dans l'historique">
         <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V7l-4-4z"/><path stroke-linecap="round" stroke-linejoin="round" d="M17 21v-8H7v8M7 3v5h8"/></svg>
       </button>
-      <!-- Bouton Envoyer PDF par Mail / Partager -->
-      <button onclick="shareOrEmailPDF()" class="px-2.5 py-1.5 rounded-xl bg-sky-500 active:bg-sky-400 text-slate-950 font-bold text-xs shadow flex items-center gap-1" title="Envoyer le PDF par mail">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-        <span>Mail</span>
+      <!-- Bouton Cloud (Envoi direct selon le Cloud / Mail choisi dans le menu déroulant) -->
+      <button onclick="triggerConfiguredCloudExport()" class="px-2.5 py-1.5 rounded-xl bg-sky-500 active:bg-sky-400 text-slate-950 font-bold text-xs shadow flex items-center gap-1" title="Envoyer le PDF vers le Cloud ou Mail configuré">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+        <span>Cloud</span>
       </button>
       <!-- Bouton Telecharger PDF -->
       <button onclick="generateAndDownloadPDF()" class="px-2.5 py-1.5 rounded-xl bg-amber-500 active:bg-amber-400 text-slate-950 font-bold text-xs shadow flex items-center gap-1" title="Télécharger le PDF">
@@ -263,11 +263,11 @@
         </div>
         <div>
           <label class="block text-[10px] font-semibold uppercase text-slate-400 mb-1">N&deg; Service</label>
-          <input type="text" id="service-number" placeholder="Ex: BCHA104" oninput="syncHeader()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-mono uppercase text-amber-300 font-bold focus:border-amber-500 focus:outline-none" />
+          <input type="text" id="service-number" placeholder="N° Service" oninput="syncHeader()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-mono uppercase text-amber-300 font-bold focus:border-amber-500 focus:outline-none" />
         </div>
         <div>
           <label class="block text-[10px] font-semibold uppercase text-slate-400 mb-1">Dur&eacute;e Fiche</label>
-          <input type="text" id="service-expected-duration" placeholder="08:40" oninput="syncHeader(); checkServiceDuration();" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-mono text-white focus:border-amber-500 focus:outline-none" />
+          <input type="text" id="service-expected-duration" placeholder="HH:MM" oninput="syncHeader(); checkServiceDuration();" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-mono text-white focus:border-amber-500 focus:outline-none" />
         </div>
       </div>
 
@@ -488,15 +488,94 @@
         </p>
       </div>
 
-      <!-- BLOC CLE API GEMINI -->
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
-        <h2 class="text-sm font-bold text-white">Lecture Automatique IA (Gemini Vision)</h2>
-        <p class="text-xs text-slate-400 leading-relaxed">Pour que le t&eacute;l&eacute;phone lise automatiquement vos photos de REBU et vos PDF de prestation (filtr&eacute;s sur le nom du conducteur), collez votre cl&eacute; API Google Gemini :</p>
-        <div class="flex gap-2">
-          <input type="password" id="gemini-key-input" placeholder="Cl&eacute; AIzaSy..." class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white" />
-          <button onclick="saveGeminiKey()" class="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl text-xs">OK</button>
+      <!-- BLOC DESTINATION DU BOUTON "CLOUD" & ARBORESCENCE AUTOMATIQUE -->
+      <div class="bg-slate-900 border border-sky-500/40 rounded-2xl p-4 space-y-3">
+        <div class="flex items-center justify-between gap-2">
+          <h2 class="text-sm font-bold text-sky-400">Bouton &laquo; Cloud &raquo; &amp; Classement PDF</h2>
+          <button onclick="triggerConfiguredCloudExport()" class="px-3 py-1 rounded-xl bg-sky-500 text-slate-950 font-bold text-xs shadow">
+            Tester Cloud
+          </button>
         </div>
-        <p class="text-[11px] text-slate-500">Sans cl&eacute; IA, l'application utilise son lecteur PDF local int&eacute;gr&eacute; et vous laisse tout modifier manuellement.</p>
+
+        <p class="text-xs text-slate-300 leading-relaxed">
+          Choisissez votre Cloud ou mode d'envoi dans le menu d&eacute;roulant ci-dessous. Le PDF est g&eacute;n&eacute;r&eacute; en m&eacute;moire vive (<strong>sans saturer la m&eacute;moire du t&eacute;l&eacute;phone</strong>) au format <code>JJ-MM-AAAA_Service.pdf</code> :
+        </p>
+
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-[11px] font-mono text-amber-300 break-all" id="cloud-path-preview">
+          RB RailSynth&egrave;se / AAAA / MM - Mois / JJ-MM-AAAA_Service.pdf
+        </div>
+
+        <div class="space-y-1.5">
+          <label class="block text-[10px] font-bold uppercase text-sky-300">Destination du bouton &laquo; Cloud &raquo; (M&eacute;moris&eacute;e) :</label>
+          <select id="cloud-target-select" onchange="saveCloudSettings()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-white focus:border-sky-400 focus:outline-none">
+            <option value="gdrive_share">Google Drive (via menu Cloud sans stocker sur le t&eacute;l&eacute;phone)</option>
+            <option value="onedrive_share">Microsoft OneDrive (via menu Cloud sans stocker)</option>
+            <option value="icloud_share">Apple iCloud / Fichiers (via menu Cloud sans stocker)</option>
+            <option value="dropbox_share">Dropbox / Proton / Nextcloud (via menu Cloud sans stocker)</option>
+            <option value="webhook_auto">Cloud 1-Clic Auto-Dossiers (Cr&eacute;e RB RailSynth&egrave;se / AAAA / MM - Mois)</option>
+            <option value="folder_picker">Dossier Cloud synchronis&eacute; sur l'appareil (Auto-Dossiers 1-Clic)</option>
+            <option value="mail_share">Envoyer directement par Mail (avec PDF joint)</option>
+          </select>
+        </div>
+
+        <div id="cloud-mail-box" class="space-y-1 pt-1">
+          <label class="block text-[10px] font-semibold uppercase text-slate-400">Adresse e-mail destinataire (m&eacute;moris&eacute;e pour l'envoi Mail) :</label>
+          <div class="flex gap-2">
+            <input type="email" id="recipient-email-input" oninput="saveCloudSettings()" placeholder="Ex: mon.adresse@gmail.com" class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:border-sky-400 focus:outline-none" />
+          </div>
+        </div>
+
+        <details class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs">
+          <summary class="font-semibold text-sky-300 cursor-pointer select-none">
+            Option avanc&eacute;e : Passerelle 1-Clic (Cr&eacute;ation auto des dossiers sur Cloud / Drive)
+          </summary>
+          <div class="space-y-2 mt-2.5 pt-2 border-t border-slate-800 text-[11px] text-slate-300">
+            <p>
+              Si vous souhaitez que le bouton <strong>Cloud</strong> cr&eacute;e tout seul les dossiers <code>RB RailSynth&egrave;se / AAAA / MM - Mois</code> sur votre Cloud en 1 clic sans ouvrir le menu du t&eacute;l&eacute;phone, collez ici l'URL de votre passerelle (Google Apps Script / Webhook / Nextcloud) :
+            </p>
+            <input type="url" id="cloud-webhook-url-input" oninput="saveCloudSettings()" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-mono text-white focus:border-sky-400 focus:outline-none" />
+            <button onclick="copyGoogleDriveAppsScriptCode()" class="w-full py-1.5 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-amber-300 font-bold text-[11px]">
+              Copier le script Google Drive Auto-Dossiers (pr&ecirc;t &agrave; coller sur script.google.com)
+            </button>
+          </div>
+        </details>
+      </div>
+
+      <!-- BLOC LECTURE AUTOMATIQUE MULTI-IA (TOUS FOURNISSEURS) -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm font-bold text-white">Lecture Automatique IA (Multi-IA Vision)</h2>
+          <span id="active-ai-badge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold">Gemini</span>
+        </div>
+
+        <p class="text-xs text-slate-400 leading-relaxed">
+          Choisissez votre intelligence artificielle pr&eacute;f&eacute;r&eacute;e et collez sa cl&eacute; API pour lire automatiquement vos photos de REBU et de prestations :
+        </p>
+
+        <div class="space-y-1.5">
+          <label class="block text-[10px] font-bold uppercase text-amber-400">Fournisseur d'IA :</label>
+          <select id="ai-provider-select" onchange="handleAIProviderChange(this.value)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-white focus:border-amber-500 focus:outline-none">
+            <option value="gemini">Google Gemini (Flash 2.5 / Pro &mdash; Recommand&eacute;)</option>
+            <option value="openai">OpenAI (ChatGPT / GPT-4o / GPT-4o-mini)</option>
+            <option value="anthropic">Anthropic (Claude 3.5 / 3.7 Sonnet Vision)</option>
+            <option value="mistral">Mistral AI (Pixtral Vision)</option>
+            <option value="groq">Groq (Llama 4 Vision)</option>
+            <option value="openrouter">OpenRouter (Multi-mod&egrave;les)</option>
+            <option value="custom">Autre IA (URL compatible OpenAI)</option>
+          </select>
+        </div>
+
+        <div id="custom-ai-Config-box" class="hidden space-y-2 pt-1">
+          <input type="url" id="custom-ai-url-input" oninput="saveCustomAIConfig()" placeholder="URL API (ex: https://api.mon-ia.com/v1/chat/completions)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs font-mono text-white" />
+          <input type="text" id="custom-ai-model-input" oninput="saveCustomAIConfig()" placeholder="Nom du mod&egrave;le (ex: gpt-4o-mini)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs font-mono text-white" />
+        </div>
+
+        <div class="flex gap-2">
+          <input type="password" id="gemini-key-input" placeholder="Cl&eacute; API..." class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white" />
+          <button onclick="toggleKeyVisibility()" class="px-2.5 py-2 bg-slate-800 border border-slate-700 text-slate-300 rounded-xl text-xs font-bold" title="Afficher / Masquer la cl&eacute;">&OElig;il</button>
+          <button onclick="saveGeminiKey()" class="px-4 py-2 bg-amber-500 active:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs shadow">OK</button>
+        </div>
+        <p class="text-[11px] text-slate-500">Chaque cl&eacute; est m&eacute;moris&eacute;e localement sur votre t&eacute;l&eacute;phone. Sans cl&eacute; IA, le lecteur PDF local int&eacute;gr&eacute; fonctionne hors-ligne.</p>
       </div>
 
       <!-- BLOC ARCHIVAGE & HISTORIQUE -->
@@ -1361,16 +1440,29 @@
         .replace(/[A-Za-z\u00C0-\u00FF\-\s]*\+32[\d\s]+;?\s*[A-Z0-9\-]*/g, " ");
     }
 
+    function expandDriverQueryLabel(driverName) {
+      const clean = String(driverName || "").trim();
+      if (!clean) return "";
+      const n = normStr(clean);
+      if (n === "remy brasseur" || n === "brasseur remy") {
+        return "R\u00e9my Marcel L BRASSEUR (ou R\u00e9my Brasseur)";
+      }
+      return clean;
+    }
+
     function isPageOwnedByDriver(pageText, driverName) {
       if (!pageText || !driverName) return false;
       // Retirer toutes les lignes de remise/reprise (AFREL / AFREL DP) qui contiennent un numero de telephone (+32) ou "; BCHA-"
+      // y compris lorsque le prenom du collegue de remise est sur la ligne juste au-dessus du numero +32
       const withoutHandovers = String(pageText)
-        .replace(/[^\n]*?(?:\+32\s*\d|;\s*\+?\d{2,}|\b04\d{2}\s*\d{6}\b|;\s*(?:BCHA|BANT|STHL|SLAL)\-\d+)[^\n]*/gi, " ");
+        .replace(/(?:[A-Za-z\u00C0-\u00FF\-]+\s*\r?\n\s*)?[^\n]*?(?:\+32\s*\d|;\s*\+?\d{2,}|\b04\d{2}\s*\d{6}\b|;\s*(?:BCHA|BANT|STHL|SLAL)\-\d+)[^\n]*/gi, " ");
       const normPage = normStr(withoutHandovers);
-      const nameParts = normStr(driverName).split(/\s+/).filter(p => p.length >= 3);
+      const nameParts = normStr(driverName).split(/\s+/).filter(p => p.length >= 2);
       if (nameParts.length === 0) return false;
-      return nameParts.every(part => normPage.includes(part)) ||
-             nameParts.some(part => part.length >= 5 && normPage.includes(part));
+      // Tous les mots saisis (ex: "remy" et "brasseur") doivent figurer sur la fiche du Collaborateur,
+      // meme si la fiche intercale des deuxiemes prenoms ou initiales ("remy marcel l brasseur")
+      const pageWords = new Set(normPage.split(/\s+/));
+      return nameParts.every(part => pageWords.has(part) || normPage.includes(part));
     }
 
     function extractStationsFromLine(rawStr, opType) {
@@ -3254,7 +3346,8 @@
             const apiCompressedUrl = await compressImageDataUrl(imageDataUrl, 1280, 0.78);
             const base64Data = apiCompressedUrl.split(",")[1];
             const knownOpsList = getActiveOpTypes().join("|");
-            const prompt = "Extrais uniquement la fiche de service du conducteur : " + targetDriver + " (ignore les fiches des autres agents). Repere la date exacte inscrite sur la fiche de prestation et renvoie-la obligatoirement au format JJ/MM/AAAA. Repere aussi le numero de service (souvent compose de BCHA suivi de 3 chiffres, ex: BCHA104). Applique les regles Lineas/SIBELIT : utilise les codes gares abreges (GLI, FGZH, FCLF, FMS, FDD, FJR...), fusionne les LEG consecutifs qui gardent exactement le meme numero de train, mais separe-les si le numero change. Utilise en priorite ces types de taches connus (" + knownOpsList + ") ou tout nouveau code d operation figurant sur la fiche. Renvoie UNIQUEMENT un JSON de la forme :\n" +
+            const driverSearchLabel = expandDriverQueryLabel(targetDriver) || "le conducteur titulaire";
+            const prompt = "Extrais uniquement la fiche de service du conducteur : " + driverSearchLabel + " (reconnais le Collaborateur meme s il n a inscrit que son prenom et son nom sans ses deuxiemes prenoms ou initiales, et ignore les fiches ou lignes de remise +32 des autres agents). Repere la date exacte inscrite sur la fiche de prestation et renvoie-la obligatoirement au format JJ/MM/AAAA. Repere aussi le numero de service (souvent compose de BCHA suivi de 3 chiffres, ex: BCHA104). Applique les regles Lineas/SIBELIT : utilise les codes gares abreges (GLI, FGZH, FCLF, FMS, FDD, FJR...), fusionne les LEG consecutifs qui gardent exactement le meme numero de train, mais separe-les si le numero change. Utilise en priorite ces types de taches connus (" + knownOpsList + ") ou tout nouveau code d operation figurant sur la fiche. Renvoie UNIQUEMENT un JSON de la forme :\n" +
               '{\n' +
               '  "serviceDate": "JJ/MM/AAAA",\n' +
               '  "serviceNumber": "BCHA...",\n' +
@@ -3615,6 +3708,10 @@
     function updateCloudPathPreview() {
       const el = document.getElementById("cloud-path-preview");
       if (!el) return;
+      if (!appState.serviceDate && !appState.serviceNumber) {
+        el.textContent = "RB RailSynth\u00e8se / AAAA / MM - Mois / JJ-MM-AAAA_Service.pdf";
+        return;
+      }
       const meta = getServicePdfExportMeta();
       el.textContent = meta.displayFullPath;
     }
