@@ -331,142 +331,156 @@
         </div>
       </div>
 
-      <!-- OPTIONS DE CALCULS : HORAIRES FICHE, FLEXIBILITE (PERT & REAL-TIME), GRAND RAPPEL & DECOUCHER (LIT) -->
-      <div class="pt-2 border-t border-slate-800 space-y-2">
-        <!-- Heures réelles de la Fiche de Service (prioritaires sur le calcul LEASE) -->
-        <div class="bg-slate-950 border border-slate-800 rounded-xl p-2 space-y-1.5">
-          <div class="flex items-center justify-between">
-            <span class="text-[10px] font-bold uppercase text-emerald-400">Horaires Fiche de Service (Prioritaires sur LEASE)</span>
-            <span id="sheet-hours-badge" class="text-[10px] font-mono text-slate-400">Auto</span>
-          </div>
-          <div class="grid grid-cols-3 gap-2">
-            <div>
-              <label class="block text-[9px] text-slate-400 mb-0.5">D&eacute;but Fiche (HH:MM)</label>
-              <input type="text" id="sheet-start-time" placeholder="Auto (Fiche)" oninput="syncPayrollOptions()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-emerald-300 focus:border-emerald-500 focus:outline-none" />
-            </div>
-            <div>
-              <label class="block text-[9px] text-slate-400 mb-0.5">Fin Fiche (HH:MM)</label>
-              <input type="text" id="sheet-end-time" placeholder="Auto (Fiche)" oninput="syncPayrollOptions()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-emerald-300 focus:border-emerald-500 focus:outline-none" />
-            </div>
-            <div>
-              <label class="block text-[9px] text-sky-400 mb-0.5">D&eacute;passement Real-Time (min)</label>
-              <input type="number" id="realtime-overrun-min" min="0" placeholder="Auto / 0" oninput="syncPayrollOptions()" class="w-full bg-slate-900 border border-sky-500/40 rounded-lg px-2 py-1 text-xs font-mono text-sky-300 focus:border-sky-400 focus:outline-none" />
-            </div>
-          </div>
+      <!-- BARRE COMPACTE MASQUEE PAR DEFAUT POUR NE PAS SURCHARGER LA 1RE PAGE + ACCES ONGLET CALCULS -->
+      <div class="pt-2 border-t border-slate-800 space-y-2 overflow-hidden">
+        <div class="flex items-center justify-between gap-1.5">
+          <button type="button" onclick="togglePrestationCalcOptions()" class="flex-1 py-1.5 px-2.5 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-[10px] font-bold text-slate-300 flex items-center justify-between gap-1.5 min-w-0">
+            <span class="truncate">Options Fiche / PERT / Rappel / D&eacute;coucher</span>
+            <span id="options-toggle-chevron" class="text-amber-400 font-mono text-[10px] shrink-0">+ Ouvrir</span>
+          </button>
+          <button type="button" onclick="switchMobileTab('calc')" class="py-1.5 px-2.5 rounded-xl bg-amber-500/15 active:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-bold text-[10px] shrink-0 flex items-center gap-1">
+            <span>Calculs &amp; Mois</span>
+            <span>&rarr;</span>
+          </button>
         </div>
 
-        <div class="flex flex-wrap items-center gap-1.5">
-          <label class="flex items-center gap-1.5 py-1 px-2 rounded-lg bg-slate-950 border border-slate-800 cursor-pointer select-none">
-            <input type="checkbox" id="chk-initially-planned" onchange="toggleInitiallyPlanned(this.checked)" class="w-3.5 h-3.5 accent-amber-500 rounded" />
-            <span class="text-[10px] font-bold text-amber-300 leading-none">Heures initialement pr&eacute;vues (PERT)</span>
-          </label>
-
-          <label class="flex items-center gap-1.5 py-1 px-2 rounded-lg bg-slate-950 border border-slate-800 cursor-pointer select-none">
-            <input type="checkbox" id="chk-grand-rappel" onchange="toggleGrandRappel(this.checked)" class="w-3.5 h-3.5 accent-rose-500 rounded" />
-            <span class="text-[10px] font-bold text-rose-300 leading-none">Grand Rappel (RX/Cong&eacute; &bull; 100&euro;)</span>
-          </label>
-
-          <label class="flex items-center gap-1.5 py-1 px-2 rounded-lg bg-slate-950 border border-slate-800 cursor-pointer select-none">
-            <input type="checkbox" id="chk-holiday" onchange="toggleHolidayFlag(this.checked)" class="w-3.5 h-3.5 accent-sky-500 rounded" />
-            <span class="text-[10px] font-bold text-sky-300 leading-none">Jour f&eacute;ri&eacute; (100% Dimanche)</span>
-          </label>
-        </div>
-
-        <!-- Régime A : Écart PERT (Modification à l'avance pendant le temps libre) -->
-        <div id="initially-planned-box" class="hidden bg-slate-950 border border-amber-500/40 rounded-xl p-2.5 space-y-2">
-          <div class="flex items-center justify-between">
-            <span class="text-[10px] font-bold uppercase text-amber-400">R&eacute;gime A &mdash; Ligne &laquo; Initially planned &raquo; (PERT)</span>
-            <span id="pert-ecart-badge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold">&Eacute;cart : 0 min (0 &euro;)</span>
-          </div>
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="block text-[10px] text-slate-400 mb-0.5">D&eacute;but initialement pr&eacute;vu</label>
-              <input type="text" id="initially-planned-start" placeholder="HH:MM" oninput="syncPayrollOptions()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs font-mono text-white focus:border-amber-500 focus:outline-none" />
+        <!-- Panneau d'options replié (masqué par défaut pour garder la 1re page épurée) -->
+        <div id="prestation-calc-options-drawer" class="hidden space-y-2 pt-1 max-w-full overflow-hidden">
+          <!-- Heures réelles de la Fiche de Service (prioritaires sur le calcul LEASE) -->
+          <div class="bg-slate-950 border border-slate-800 rounded-xl p-2 space-y-1.5">
+            <div class="flex items-center justify-between gap-1">
+              <span class="text-[10px] font-bold uppercase text-emerald-400 truncate">Horaires Fiche de Service (Prioritaires)</span>
+              <span id="sheet-hours-badge" class="text-[10px] font-mono text-slate-400 shrink-0">Auto</span>
             </div>
-            <div>
-              <label class="block text-[10px] text-slate-400 mb-0.5">Fin initialement pr&eacute;vue</label>
-              <input type="text" id="initially-planned-end" placeholder="HH:MM" oninput="syncPayrollOptions()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs font-mono text-white focus:border-amber-500 focus:outline-none" />
-            </div>
-          </div>
-        </div>
-
-        <!-- Règle 7 : Gestion des Découchers (Indicateur visuel "Lit") -->
-        <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 space-y-2">
-          <div class="flex items-center justify-between gap-2">
-            <label class="text-[10px] font-bold uppercase text-sky-400 shrink-0">D&eacute;coucher (&laquo; Lit &raquo;) :</label>
-            <select id="decoucher-mode-select" onchange="syncPayrollOptions()" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-[11px] font-bold text-white focus:border-sky-400 focus:outline-none">
-              <option value="none">Aucun d&eacute;coucher</option>
-              <option value="aller_lit1">1er lit &mdash; Aller (Trajet &gt; 30 min = travail &bull; 0 &euro; sur aller)</option>
-              <option value="retour_lit2">2&egrave;me lit &mdash; Retour (100% trajet = travail &bull; Indemnit&eacute; ici)</option>
-              <option value="lit_2_meme_jour">Lit &laquo; 2 &raquo; &mdash; Aller-retour le m&ecirc;me jour (2 prestations / 1 jour)</option>
-            </select>
-          </div>
-
-          <div id="decoucher-details-box" class="hidden space-y-2 pt-1.5 border-t border-slate-800/80">
-            <div id="decoucher-aller-notice" class="hidden bg-amber-950/60 border border-amber-700/60 rounded-lg p-2 text-[10px] text-amber-200 leading-relaxed">
-              <strong>1er lit (Aller) :</strong> Seul le trajet vers l&rsquo;h&ocirc;tel d&eacute;passant 30 minutes (<code>Trajet - 30 min</code>) compte comme temps de travail. L&rsquo;indemnit&eacute; de d&eacute;coucher est comptabilis&eacute;e uniquement sur le retour (2&egrave;me lit) pour &eacute;viter tout doublon.
-            </div>
-
-            <!-- Champs pour Lit "2" (Aller-retour le même jour : horaires de la 2e prestation sous la 1re) -->
-            <div id="decoucher-lit2-same-day-box" class="hidden bg-sky-950/30 border border-sky-500/40 rounded-lg p-2 space-y-2">
-              <div class="text-[10px] font-bold text-sky-300 uppercase">Lit &laquo; 2 &raquo; (M&ecirc;me jour) &mdash; Horaires de la 2e prestation (sous la 1re) :</div>
-              <div class="grid grid-cols-3 gap-2">
-                <div>
-                  <label class="block text-[9px] text-slate-400 mb-0.5">D&eacute;but 2e prest.</label>
-                  <input type="text" id="second-prestation-start" placeholder="HH:MM" oninput="syncPayrollOptions()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-white" />
-                </div>
-                <div>
-                  <label class="block text-[9px] text-slate-400 mb-0.5">Fin 2e prest.</label>
-                  <input type="text" id="second-prestation-end" placeholder="HH:MM" oninput="syncPayrollOptions()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-white" />
-                </div>
-                <div>
-                  <label class="block text-[9px] text-slate-400 mb-0.5">Dur&eacute;e 2e Fiche</label>
-                  <input type="text" id="second-prestation-duration" placeholder="HH:MM" oninput="syncPayrollOptions()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-emerald-300" />
-                </div>
-              </div>
-              <div class="grid grid-cols-2 gap-2">
-                <div>
-                  <label class="block text-[9px] text-slate-400 mb-0.5">Trajet Aller h&ocirc;tel (min)</label>
-                  <input type="number" id="decoucher-travel-aller-min" min="0" placeholder="Ex: 45 (-30m)" oninput="syncPayrollOptions()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-white" />
-                </div>
-                <div>
-                  <label class="block text-[9px] text-slate-400 mb-0.5">Trajet Retour h&ocirc;tel (min)</label>
-                  <input type="number" id="decoucher-travel-retour-min" min="0" placeholder="Ex: 35 (100%)" oninput="syncPayrollOptions()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-white" />
-                </div>
-              </div>
-            </div>
-
-            <!-- Champs trajet hôtel pour 1er lit ou 2ème lit simple -->
-            <div id="decoucher-single-travel-box" class="grid grid-cols-2 gap-2">
+            <div class="grid grid-cols-3 gap-2">
               <div>
-                <label class="block text-[10px] text-slate-400 mb-0.5">Trajet h&ocirc;tel (minutes)</label>
-                <input type="number" id="decoucher-travel-min" min="0" placeholder="Ex: 45" oninput="syncPayrollOptions()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs font-mono text-white focus:border-sky-400 focus:outline-none" />
+                <label class="block text-[9px] text-slate-400 mb-0.5 truncate">D&eacute;but Fiche</label>
+                <input type="text" id="sheet-start-time" placeholder="Auto" oninput="syncPayrollOptions()" class="w-full min-w-0 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-emerald-300 focus:border-emerald-500 focus:outline-none" />
               </div>
               <div>
-                <label class="block text-[10px] text-slate-400 mb-0.5">Repos h&ocirc;tel (HH:MM)</label>
-                <input type="text" id="decoucher-rest-hours" placeholder="Ex: 10:30" oninput="syncPayrollOptions()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs font-mono text-white focus:border-sky-400 focus:outline-none" />
+                <label class="block text-[9px] text-slate-400 mb-0.5 truncate">Fin Fiche</label>
+                <input type="text" id="sheet-end-time" placeholder="Auto" oninput="syncPayrollOptions()" class="w-full min-w-0 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-emerald-300 focus:border-emerald-500 focus:outline-none" />
+              </div>
+              <div>
+                <label class="block text-[9px] text-sky-400 mb-0.5 truncate">Real-Time (min)</label>
+                <input type="number" id="realtime-overrun-min" min="0" placeholder="Auto/0" oninput="syncPayrollOptions()" class="w-full min-w-0 bg-slate-900 border border-sky-500/40 rounded-lg px-2 py-1 text-xs font-mono text-sky-300 focus:border-sky-400 focus:outline-none" />
               </div>
             </div>
+          </div>
 
-            <label class="flex items-center gap-1.5 text-[10px] text-slate-300 cursor-pointer select-none">
-              <input type="checkbox" id="chk-decoucher-add-travel" onchange="syncPayrollOptions()" class="w-3.5 h-3.5 accent-sky-500 rounded" />
-              <span>Ajouter le trajet h&ocirc;tel imposable en plus de la Dur&eacute;e Fiche</span>
+          <div class="grid grid-cols-3 gap-1.5">
+            <label class="flex items-center justify-center gap-1 py-1.5 px-1.5 rounded-lg bg-slate-950 border border-slate-800 cursor-pointer select-none min-w-0">
+              <input type="checkbox" id="chk-initially-planned" onchange="toggleInitiallyPlanned(this.checked)" class="w-3.5 h-3.5 accent-amber-500 rounded shrink-0" />
+              <span class="text-[10px] font-bold text-amber-300 leading-tight truncate">PERT Pr&eacute;vu</span>
             </label>
 
-            <!-- Barème des indemnités à tagger (2ème lit Retour ou Lit "2" même jour) -->
-            <div id="decoucher-retour-indemnity-box" class="hidden grid grid-cols-2 gap-2 pt-1 border-t border-slate-800/80">
+            <label class="flex items-center justify-center gap-1 py-1.5 px-1.5 rounded-lg bg-slate-950 border border-slate-800 cursor-pointer select-none min-w-0">
+              <input type="checkbox" id="chk-grand-rappel" onchange="toggleGrandRappel(this.checked)" class="w-3.5 h-3.5 accent-rose-500 rounded shrink-0" />
+              <span class="text-[10px] font-bold text-rose-300 leading-tight truncate">Grand Rappel</span>
+            </label>
+
+            <label class="flex items-center justify-center gap-1 py-1.5 px-1.5 rounded-lg bg-slate-950 border border-slate-800 cursor-pointer select-none min-w-0">
+              <input type="checkbox" id="chk-holiday" onchange="toggleHolidayFlag(this.checked)" class="w-3.5 h-3.5 accent-sky-500 rounded shrink-0" />
+              <span class="text-[10px] font-bold text-sky-300 leading-tight truncate">Jour f&eacute;ri&eacute;</span>
+            </label>
+          </div>
+
+          <!-- Régime A : Écart PERT -->
+          <div id="initially-planned-box" class="hidden bg-slate-950 border border-amber-500/40 rounded-xl p-2.5 space-y-2">
+            <div class="flex items-center justify-between gap-1">
+              <span class="text-[10px] font-bold uppercase text-amber-400 truncate">Horaire &laquo; Initially planned &raquo;</span>
+              <span id="pert-ecart-badge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold shrink-0">&Eacute;cart : 0 min (0 &euro;)</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
               <div>
-                <label class="block text-[10px] font-bold text-emerald-400 mb-0.5">Pays du D&eacute;coucher</label>
-                <select id="decoucher-zone-select" onchange="syncPayrollOptions()" class="w-full bg-slate-900 border border-emerald-600/50 rounded-lg px-2 py-1 text-xs font-bold text-emerald-300">
-                  <option value="BE">Belgique (52&euro; net + 68&euro; brut)</option>
-                  <option value="INT">&Eacute;tranger (92&euro; net)</option>
-                </select>
+                <label class="block text-[10px] text-slate-400 mb-0.5">D&eacute;but initial</label>
+                <input type="text" id="initially-planned-start" placeholder="HH:MM" oninput="syncPayrollOptions()" class="w-full min-w-0 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs font-mono text-white focus:border-amber-500 focus:outline-none" />
               </div>
-              <div class="flex items-end">
-                <label class="w-full flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg bg-slate-900 border border-slate-700 cursor-pointer select-none">
-                  <input type="checkbox" id="chk-decoucher-long" onchange="syncPayrollOptions()" class="w-3.5 h-3.5 accent-emerald-500 rounded" />
-                  <span class="text-[10px] font-bold text-amber-300 leading-none">Long (&gt; 24h : 78&euro;+102&euro; / 138&euro;)</span>
-                </label>
+              <div>
+                <label class="block text-[10px] text-slate-400 mb-0.5">Fin initiale</label>
+                <input type="text" id="initially-planned-end" placeholder="HH:MM" oninput="syncPayrollOptions()" class="w-full min-w-0 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs font-mono text-white focus:border-amber-500 focus:outline-none" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Règle 7 : Gestion des Découchers (Sélecteur compact w-full qui n'élargit jamais l'interface) -->
+          <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 space-y-2 max-w-full overflow-hidden">
+            <div class="space-y-1">
+              <label for="decoucher-mode-select" class="block text-[10px] font-bold uppercase text-sky-400">D&eacute;coucher (Indicateur &laquo; Lit &raquo;) :</label>
+              <select id="decoucher-mode-select" onchange="syncPayrollOptions()" class="block w-full max-w-full min-w-0 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white truncate focus:border-sky-400 focus:outline-none">
+                <option value="none">Aucun d&eacute;coucher</option>
+                <option value="aller_lit1">1er lit &mdash; Aller (Trajet &gt; 30m)</option>
+                <option value="retour_lit2">2&egrave;me lit &mdash; Retour (Indemnit&eacute;)</option>
+                <option value="lit_2_meme_jour">Lit &laquo; 2 &raquo; &mdash; A/R m&ecirc;me jour</option>
+              </select>
+            </div>
+
+            <div id="decoucher-details-box" class="hidden space-y-2 pt-1.5 border-t border-slate-800/80">
+              <div id="decoucher-aller-notice" class="hidden bg-amber-950/60 border border-amber-700/60 rounded-lg p-2 text-[10px] text-amber-200 leading-relaxed">
+                <strong>1er lit (Aller) :</strong> Seul le trajet h&ocirc;tel &gt; 30 min (<code>Trajet - 30 min</code>) compte en travail. L&rsquo;indemnit&eacute; est compt&eacute;e sur le 2&egrave;me lit (retour).
+              </div>
+
+              <!-- Champs pour Lit "2" (Aller-retour le même jour) -->
+              <div id="decoucher-lit2-same-day-box" class="hidden bg-sky-950/30 border border-sky-500/40 rounded-lg p-2 space-y-2">
+                <div class="text-[10px] font-bold text-sky-300 uppercase">Lit &laquo; 2 &raquo; (M&ecirc;me jour) &mdash; 2e prestation :</div>
+                <div class="grid grid-cols-3 gap-2">
+                  <div>
+                    <label class="block text-[9px] text-slate-400 mb-0.5 truncate">D&eacute;but 2e</label>
+                    <input type="text" id="second-prestation-start" placeholder="HH:MM" oninput="syncPayrollOptions()" class="w-full min-w-0 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-white" />
+                  </div>
+                  <div>
+                    <label class="block text-[9px] text-slate-400 mb-0.5 truncate">Fin 2e</label>
+                    <input type="text" id="second-prestation-end" placeholder="HH:MM" oninput="syncPayrollOptions()" class="w-full min-w-0 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-white" />
+                  </div>
+                  <div>
+                    <label class="block text-[9px] text-slate-400 mb-0.5 truncate">Dur&eacute;e 2e</label>
+                    <input type="text" id="second-prestation-duration" placeholder="HH:MM" oninput="syncPayrollOptions()" class="w-full min-w-0 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-emerald-300" />
+                  </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-[9px] text-slate-400 mb-0.5 truncate">Trajet Aller (min)</label>
+                    <input type="number" id="decoucher-travel-aller-min" min="0" placeholder="Ex: 45" oninput="syncPayrollOptions()" class="w-full min-w-0 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-white" />
+                  </div>
+                  <div>
+                    <label class="block text-[9px] text-slate-400 mb-0.5 truncate">Trajet Retour (min)</label>
+                    <input type="number" id="decoucher-travel-retour-min" min="0" placeholder="Ex: 35" oninput="syncPayrollOptions()" class="w-full min-w-0 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-white" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Champs trajet hôtel pour 1er lit ou 2ème lit simple -->
+              <div id="decoucher-single-travel-box" class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-[10px] text-slate-400 mb-0.5 truncate">Trajet h&ocirc;tel (min)</label>
+                  <input type="number" id="decoucher-travel-min" min="0" placeholder="Ex: 45" oninput="syncPayrollOptions()" class="w-full min-w-0 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs font-mono text-white focus:border-sky-400 focus:outline-none" />
+                </div>
+                <div>
+                  <label class="block text-[10px] text-slate-400 mb-0.5 truncate">Repos h&ocirc;tel (HH:MM)</label>
+                  <input type="text" id="decoucher-rest-hours" placeholder="Ex: 10:30" oninput="syncPayrollOptions()" class="w-full min-w-0 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs font-mono text-white focus:border-sky-400 focus:outline-none" />
+                </div>
+              </div>
+
+              <label class="flex items-center gap-1.5 text-[10px] text-slate-300 cursor-pointer select-none">
+                <input type="checkbox" id="chk-decoucher-add-travel" onchange="syncPayrollOptions()" class="w-3.5 h-3.5 accent-sky-500 rounded shrink-0" />
+                <span class="leading-tight">Ajouter le trajet h&ocirc;tel imposable en plus de la Dur&eacute;e Fiche</span>
+              </label>
+
+              <!-- Barème des indemnités -->
+              <div id="decoucher-retour-indemnity-box" class="hidden grid grid-cols-2 gap-2 pt-1 border-t border-slate-800/80">
+                <div>
+                  <label class="block text-[10px] font-bold text-emerald-400 mb-0.5 truncate">Pays D&eacute;coucher</label>
+                  <select id="decoucher-zone-select" onchange="syncPayrollOptions()" class="w-full max-w-full min-w-0 bg-slate-900 border border-emerald-600/50 rounded-lg px-2 py-1 text-xs font-bold text-emerald-300 truncate">
+                    <option value="BE">Belgique (52&euro;+68&euro;)</option>
+                    <option value="INT">&Eacute;tranger (92&euro;)</option>
+                  </select>
+                </div>
+                <div class="flex items-end">
+                  <label class="w-full flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg bg-slate-900 border border-slate-700 cursor-pointer select-none min-w-0">
+                    <input type="checkbox" id="chk-decoucher-long" onchange="syncPayrollOptions()" class="w-3.5 h-3.5 accent-emerald-500 rounded shrink-0" />
+                    <span class="text-[10px] font-bold text-amber-300 leading-none truncate">Long (&gt; 24h)</span>
+                  </label>
+                </div>
               </div>
             </div>
           </div>
@@ -517,15 +531,18 @@
         + Ajouter une t&acirc;che manuellement
       </button>
 
-      <!-- SYNTHESE DES CALCULS DE LA PRESTATION, CONTRAT DE TRAVAIL & BILAN MENSUEL AUTOMATIQUE -->
+    </div>
+
+    <!-- ONGLET DEDIE : CALCULS REMUNERATION, CONTRAT & CUMUL MENSUEL -->
+    <div id="view-calc" class="hidden space-y-3">
       <div id="payroll-and-monthly-panel" class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 shadow space-y-3">
-        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-          <div>
-            <h2 class="text-xs font-bold uppercase tracking-wider text-amber-400">Calculs R&eacute;mun&eacute;ration, Contrat &amp; Cumul Mensuel</h2>
-            <p class="text-[10px] text-slate-400">Bas&eacute; sur les heures r&eacute;elles de la Fiche de Service &bull; 7 R&egrave;gles m&eacute;tier</p>
+        <div class="flex items-center justify-between gap-2 border-b border-slate-800 pb-2">
+          <div class="min-w-0">
+            <h2 class="text-xs font-bold uppercase tracking-wider text-amber-400">Calculs R&eacute;mun&eacute;ration, Contrat &amp; Mois</h2>
+            <p class="text-[10px] text-slate-400">M&eacute;morisation automatique lors de l&rsquo;envoi Cloud, Mail ou PDF</p>
           </div>
-          <button onclick="saveDayToHistory()" class="px-2.5 py-1 rounded-xl bg-emerald-500/20 active:bg-emerald-500/30 border border-emerald-500/50 text-emerald-300 font-bold text-[10px] shadow shrink-0">
-            + M&eacute;moriser dans le mois
+          <button type="button" onclick="togglePrestationCalcOptions(true)" class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-amber-300 font-bold text-[10px] shrink-0">
+            Options PERT / Lit
           </button>
         </div>
 
@@ -538,7 +555,7 @@
         <!-- 3. Bilan mensuel automatique (IndexedDB sans limite) -->
         <div class="pt-2 border-t border-slate-800 space-y-2">
           <div class="flex items-center justify-between gap-2">
-            <span class="text-[11px] font-bold text-sky-400 uppercase">Bilan Mensuel Automatique (IndexedDB)</span>
+            <span class="text-[11px] font-bold text-sky-400 uppercase">Cumul Mensuel Automatique</span>
             <input type="month" id="monthly-filter-input" onchange="renderPayrollAndMonthlySummary()" class="bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-white focus:border-sky-400 focus:outline-none" />
           </div>
           <div id="monthly-calc-summary" class="space-y-2"></div>
@@ -770,11 +787,15 @@
 
   </main>
 
-  <!-- BARRE DE NAVIGATION INFERIEURE (5 ONGLETS ANDROID) -->
-  <nav class="no-print fixed bottom-0 left-0 right-0 z-30 bg-slate-900/95 backdrop-blur border-t border-slate-800 grid grid-cols-5 py-2 px-1">
+  <!-- BARRE DE NAVIGATION INFERIEURE (6 ONGLETS ANDROID) -->
+  <nav class="no-print fixed bottom-0 left-0 right-0 z-30 bg-slate-900/95 backdrop-blur border-t border-slate-800 grid grid-cols-6 py-2 px-1">
     <button onclick="switchMobileTab('service')" id="nav-service" class="flex flex-col items-center gap-1 py-1 text-amber-400">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
       <span class="text-[10px] font-bold">Prestation</span>
+    </button>
+    <button onclick="switchMobileTab('calc')" id="nav-calc" class="flex flex-col items-center gap-1 py-1 text-slate-400">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+      <span class="text-[10px] font-bold">Calculs</span>
     </button>
     <button onclick="switchMobileTab('trains')" id="nav-trains" class="flex flex-col items-center gap-1 py-1 text-slate-400">
       <div class="relative">
@@ -1470,8 +1491,22 @@
       document.getElementById("status-bar").classList.add("hidden");
     }
 
+    function togglePrestationCalcOptions(forceOpen) {
+      const drawer = document.getElementById("prestation-calc-options-drawer");
+      const chevron = document.getElementById("options-toggle-chevron");
+      if (!drawer) return;
+      const shouldOpen = (typeof forceOpen === "boolean") ? forceOpen : drawer.classList.contains("hidden");
+      drawer.classList.toggle("hidden", !shouldOpen);
+      if (chevron) {
+        chevron.textContent = shouldOpen ? "- Masquer" : "+ Ouvrir";
+      }
+      if (shouldOpen) {
+        drawer.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+    }
+
     function switchMobileTab(tab) {
-      ["service", "trains", "docs", "stations", "settings"].forEach(t => {
+      ["service", "calc", "trains", "docs", "stations", "settings"].forEach(t => {
         const el = document.getElementById("view-" + t);
         if (el) el.classList.toggle("hidden", t !== tab);
         const btn = document.getElementById("nav-" + t);
@@ -1481,6 +1516,7 @@
             : "flex flex-col items-center gap-1 py-1 text-slate-400";
         }
       });
+      if (tab === "calc") renderPayrollAndMonthlySummary();
       if (tab === "stations") renderStationsList();
       if (tab === "docs") renderOtherDocs();
       if (tab === "settings") renderSavedDaysList();
@@ -3973,10 +4009,12 @@
       const meta = getServicePdfExportMeta();
       showStatus("G\u00e9n\u00e9ration du PDF \"" + meta.fileName + "\" en cours...");
       try {
+        // Mémorisation automatique de la prestation et de ses calculs dans le cumul mensuel IndexedDB
+        await saveDayToHistory(true);
         if (window.html2pdf) {
           const blob = await generatePdfBlobInMemory(meta.fileName);
           triggerBlobDownload(blob, meta.fileName);
-          showStatus("PDF \"" + meta.fileName + "\" enregistr\u00e9 !");
+          showStatus("PDF \"" + meta.fileName + "\" enregistr\u00e9 et prestation m\u00e9moris\u00e9e dans le mois !");
         } else {
           window.print();
         }
@@ -4025,6 +4063,8 @@
       showStatus("Pr\u00e9paration de " + meta.fileName + " (" + meta.folderPath + ")...");
 
       try {
+        // Mémorisation automatique de la prestation et de ses calculs lors de l'envoi Cloud ou Mail
+        await saveDayToHistory(true);
         const pdfBlob = await generatePdfBlobInMemory(meta.fileName);
 
         // Mode 1 : Envoi 1-clic vers passerelle Cloud Auto-Dossiers (si sélectionnée ou si URL présente en mode webhook_auto)
@@ -5114,21 +5154,28 @@
     }
 
     async function saveDayToHistory(silent) {
-      const cleanDate = formatToDDMMYYYY(appState.serviceDate || "");
-      const cleanNum = (appState.serviceNumber || "").trim().toUpperCase();
+      const now = new Date();
+      const fallbackDate = String(now.getDate()).padStart(2, "0") + "/" + String(now.getMonth() + 1).padStart(2, "0") + "/" + now.getFullYear();
+      const cleanDate = formatToDDMMYYYY(appState.serviceDate || "") || fallbackDate;
+      const cleanNum = (appState.serviceNumber || "SERVICE").trim().toUpperCase();
+
+      const snapshotState = JSON.parse(JSON.stringify(appState));
+      if (!snapshotState.serviceDate) {
+        snapshotState.serviceDate = cleanDate;
+      }
+
       const entry = {
-        savedAt: new Date().toLocaleString("fr-BE"),
-        state: JSON.parse(JSON.stringify(appState))
+        savedAt: now.toLocaleString("fr-BE"),
+        state: snapshotState
       };
 
-      if (cleanDate && cleanNum) {
-        historyEntries = historyEntries.filter(item => {
-          if (!item || !item.state) return false;
-          const d = formatToDDMMYYYY(item.state.serviceDate || "");
-          const n = (item.state.serviceNumber || "").trim().toUpperCase();
-          return !(d === cleanDate && n === cleanNum);
-        });
-      }
+      // Remplacer toute sauvegarde précédente de la même prestation (même date + même N° de service) pour éviter tout doublon
+      historyEntries = historyEntries.filter(item => {
+        if (!item || !item.state) return false;
+        const d = formatToDDMMYYYY(item.state.serviceDate || "");
+        const n = (item.state.serviceNumber || "SERVICE").trim().toUpperCase();
+        return !(d === cleanDate && n === cleanNum);
+      });
 
       historyEntries.unshift(entry);
       await dbSet("railsynthese_history_idb", historyEntries);
