@@ -372,18 +372,18 @@
           <!-- Règle 7 : Gestion des Découchers (Sélecteur compact w-full qui n'élargit jamais l'interface) -->
           <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 space-y-2 max-w-full overflow-hidden">
             <div class="space-y-1">
-              <label for="decoucher-mode-select" class="block text-[10px] font-bold uppercase text-sky-400">D&eacute;coucher (Indicateur &laquo; Lit &raquo;) :</label>
+              <label for="decoucher-mode-select" class="block text-[10px] font-bold uppercase text-sky-400">D&eacute;coucher (UITDEC / DECUIT / Lit) :</label>
               <select id="decoucher-mode-select" onchange="syncPayrollOptions()" class="block w-full max-w-full min-w-0 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white truncate focus:border-sky-400 focus:outline-none">
                 <option value="none">Aucun d&eacute;coucher</option>
-                <option value="aller_lit1">1er lit &mdash; Aller (Trajet &gt; 30m)</option>
-                <option value="retour_lit2">2&egrave;me lit &mdash; Retour (Indemnit&eacute;)</option>
-                <option value="lit_2_meme_jour">Lit &laquo; 2 &raquo; &mdash; A/R m&ecirc;me jour</option>
+                <option value="aller_lit1">UITDEC &mdash; D&eacute;part d&eacute;coucher (0 &euro;)</option>
+                <option value="retour_lit2">DECUIT &mdash; Retour (Prime sur ce jour)</option>
+                <option value="lit_2_meme_jour">Lit &laquo; 2 &raquo; &mdash; A/R m&ecirc;me jour (Prime)</option>
               </select>
             </div>
 
             <div id="decoucher-details-box" class="hidden space-y-2 pt-1.5 border-t border-slate-800/80">
               <div id="decoucher-aller-notice" class="hidden bg-amber-950/60 border border-amber-700/60 rounded-lg p-2 text-[10px] text-amber-200 leading-relaxed">
-                <strong>1er lit (Aller) :</strong> Seul le trajet h&ocirc;tel &gt; 30 min (<code>Trajet - 30 min</code>) compte en travail. L&rsquo;indemnit&eacute; est compt&eacute;e sur le 2&egrave;me lit (retour).
+                <strong>UITDEC (D&eacute;part d&eacute;coucher) :</strong> Seul le trajet h&ocirc;tel &gt; 30 min (<code>Trajet - 30 min</code>) compte en travail. La prime de d&eacute;coucher sera rattach&eacute;e &agrave; la journ&eacute;e de retour (<strong>DECUIT</strong>).
               </div>
 
               <!-- Champs pour Lit "2" (Aller-retour le même jour) -->
@@ -766,10 +766,6 @@
       <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
       <span class="text-[10px] font-bold">Prestation</span>
     </button>
-    <button onclick="switchMobileTab('calc')" id="nav-calc" class="flex flex-col items-center gap-1 py-1 text-slate-400">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-      <span class="text-[10px] font-bold">Calculs</span>
-    </button>
     <button onclick="switchMobileTab('trains')" id="nav-trains" class="flex flex-col items-center gap-1 py-1 text-slate-400">
       <div class="relative">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h8m-8 4h8m-4 4v3m-4 3h8a2 2 0 002-2V6a2 2 0 00-2-2H8a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg>
@@ -787,6 +783,10 @@
     <button onclick="switchMobileTab('stations')" id="nav-stations" class="flex flex-col items-center gap-1 py-1 text-slate-400">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
       <span class="text-[10px] font-bold">Gares</span>
+    </button>
+    <button onclick="switchMobileTab('calc')" id="nav-calc" class="flex flex-col items-center gap-1 py-1 text-slate-400">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+      <span class="text-[10px] font-bold">Calculs</span>
     </button>
     <button onclick="switchMobileTab('settings')" id="nav-settings" class="flex flex-col items-center gap-1 py-1 text-slate-400">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -951,7 +951,8 @@
     const BASE_OP_TYPES = [
       "LEASE", "CTB", "TAXI", "VOETPIED", "AFREL", "AFREL DP", "TRANSFER", "FP", "RP",
       "PLAT", "KOPAC", "REMFREA", "REMFREC", "XKOPAC", "XREMFREC", "LEG", "xONTDC",
-      "BEVAP", "BUNFAI1", "LOC KOPAC", "LOC ONTDC", "VEDE", "PASS", "PAUZE", "END"
+      "BEVAP", "BUNFAI1", "LOC KOPAC", "LOC ONTDC", "VEDE", "PASS", "PAUZE", "END",
+      "UITDEC", "DECUIT"
     ];
 
     const REBU_COUNTRIES = ["BE", "LU", "FR", "CH", "DE", "NL"];
@@ -1149,8 +1150,11 @@
         const savedState = isVirginShare ? null : await dbGet("railsynthese_current_state_idb");
         if (savedState && typeof savedState === "object") {
           const mergedOpTypes = Array.isArray(savedState.opTypes) && savedState.opTypes.length > 0
-            ? savedState.opTypes
+            ? [...savedState.opTypes]
             : [...BASE_OP_TYPES];
+          BASE_OP_TYPES.forEach(op => {
+            if (!mergedOpTypes.includes(op)) mergedOpTypes.push(op);
+          });
           if (Array.isArray(savedState.activities)) {
             savedState.activities.forEach(a => {
               if (a.type && !mergedOpTypes.includes(a.type)) mergedOpTypes.push(a.type);
@@ -1281,7 +1285,11 @@
         await promptNewTaskForActivity(actIdx);
       } else {
         updateActivity(actIdx, "type", selectedValue);
+        applyAutoDecoucherDetection("", appState.activities);
+        syncPayrollUIControlsFromState();
         renderServiceActivities();
+        renderPayrollAndMonthlySummary();
+        await saveState();
       }
     }
 
@@ -1687,6 +1695,7 @@
       res = res.replace(/(?<![0-9])([0-2]\d)([0-5]\d):/g, " $1:$2 ");
       // Separer les heures collees aux lettres du type "INDUSTRIELLE11:25" -> "INDUSTRIELLE 11:25"
       res = res.replace(/([A-Za-z\u00C0-\u00FF])([0-2]?\d:[0-5]\d)/g, "$1 $2");
+      res = res.replace(/\bDECUIT3\b/gi, "DECUIT");
       return res;
     }
 
@@ -2367,12 +2376,17 @@
 
       if (parsed.length > 0) {
         appState.activities = mergeSameTrainLegs(parsed);
+        applyAutoDecoucherDetection(raw, appState.activities);
         expandedActivityIdx = null;
         renderAll();
         saveState();
         document.getElementById("raw-text-box").classList.add("hidden");
-        showStatus("Prestation " + (appState.serviceNumber || "") + " : " + appState.activities.length + " t\u00e2ches g\u00e9n\u00e9r\u00e9es avec succ\u00e8s !");
+        const decTag = appState.decoucherMode === "retour_lit2"
+          ? " (DECUIT d\u00e9tect\u00e9 : Prime d\u00e9coucher activ\u00e9e sur ce jour)"
+          : (appState.decoucherMode === "aller_lit1" ? " (UITDEC d\u00e9tect\u00e9 : D\u00e9part d\u00e9coucher)" : "");
+        showStatus("Prestation " + (appState.serviceNumber || "") + " : " + appState.activities.length + " t\u00e2ches g\u00e9n\u00e9r\u00e9es" + decTag + " !");
       } else {
+        applyAutoDecoucherDetection(raw, appState.activities);
         renderAll();
         saveState();
         showStatus("Aucune t\u00e2che reconnue dans ce document.");
@@ -3654,6 +3668,7 @@
                   ...a
                 })));
               }
+              applyAutoDecoucherDetection(text || "", appState.activities);
               expandedActivityIdx = null;
               renderAll();
               await saveState();
@@ -4606,13 +4621,64 @@
       return Boolean(isGrandRappel) ? 100 : 0;
     }
 
-    // 7. GESTION DES DECOUCHERS (Indicateur visuel "Lit")
-    // - 1er lit (Aller) : Trajet hôtel > 30 min = travail (Trajet - 30). 0 € d'indemnité sur l'aller.
-    // - 2ème lit (Retour) : 100 % trajet hôtel = travail + Indemnité Court (<=24h) ou Long (>24h).
-    // - Lit avec le chiffre "2" (Aller-retour le même jour) : Découcher court sur 1 journée (horaires 2e prestation sous la 1re) + Indemnité Court (<=24h).
+    // Détection automatique de UITDEC (Départ découcher -> aller_lit1) et DECUIT (Retour découcher -> retour_lit2 = journée de la prime)
+    function applyAutoDecoucherDetection(rawText, activities) {
+      const txt = String(rawText || "");
+      const acts = Array.isArray(activities) ? activities : [];
+
+      const hasUitdecInText = /\bUITDEC\b/i.test(txt);
+      const hasDecuitInText = /\bDECUIT3?\b/i.test(txt);
+
+      const uitdecAct = acts.find(a => /^UITDEC$/i.test(String(a.type || "").trim()));
+      const decuitAct = acts.find(a => /^DECUIT3?$/i.test(String(a.type || "").trim()));
+
+      const hasUitdec = Boolean(hasUitdecInText || uitdecAct);
+      const hasDecuit = Boolean(hasDecuitInText || decuitAct);
+
+      if (hasUitdec && hasDecuit) {
+        // Les deux codes sur la même journée = Aller-retour découcher le même jour
+        appState.decoucherMode = "lit_2_meme_jour";
+      } else if (hasDecuit) {
+        // DECUIT inscrit sur la fiche = Retour de découcher -> C'est à cette journée-là que fait référence la prime !
+        appState.decoucherMode = "retour_lit2";
+        if (decuitAct && decuitAct.startTime && decuitAct.endTime && !appState.decoucherTravelMin) {
+          const s = parseHHMMToMinutes(decuitAct.startTime);
+          const e = parseHHMMToMinutes(decuitAct.endTime);
+          if (s !== null && e !== null) {
+            appState.decoucherTravelMin = String(spanMinutesBetween(s, e));
+          }
+        }
+      } else if (hasUitdec) {
+        // UITDEC inscrit sur la fiche = Départ en découcher -> 0 € de prime sur cette journée (comptée au retour DECUIT)
+        appState.decoucherMode = "aller_lit1";
+        if (uitdecAct && uitdecAct.startTime && uitdecAct.endTime && !appState.decoucherTravelMin) {
+          const s = parseHHMMToMinutes(uitdecAct.startTime);
+          const e = parseHHMMToMinutes(uitdecAct.endTime);
+          if (s !== null && e !== null) {
+            appState.decoucherTravelMin = String(spanMinutesBetween(s, e));
+          }
+        }
+      }
+    }
+
+    // 7. GESTION DES DECOUCHERS (UITDEC / DECUIT / Indicateur visuel "Lit")
+    // - UITDEC / 1er lit (Aller) : Je pars découcher. Trajet hôtel > 30 min = travail (Trajet - 30). 0 € de prime sur l'aller.
+    // - DECUIT / 2ème lit (Retour) : Je reviens de découcher. C'est à cette journée-là que fait référence la prime de découcher + 100 % trajet = travail.
+    // - Lit avec le chiffre "2" (Aller-retour le même jour) : Découcher court sur 1 journée + Indemnité Court (<=24h).
     function calculateDecoucherDetails(stateObj) {
       const st = stateObj || appState;
-      const mode = st.decoucherMode || "none";
+      let mode = st.decoucherMode || "none";
+      const acts = Array.isArray(st.activities) ? st.activities : [];
+
+      // Sécurité : si decoucherMode est resté sur "none" mais qu'une tâche UITDEC ou DECUIT est présente dans les tâches de la prestation
+      if (mode === "none" && acts.length > 0) {
+        const hasUitdec = acts.some(a => /^UITDEC$/i.test(String(a.type || "").trim()));
+        const hasDecuit = acts.some(a => /^DECUIT3?$/i.test(String(a.type || "").trim()));
+        if (hasUitdec && hasDecuit) mode = "lit_2_meme_jour";
+        else if (hasDecuit) mode = "retour_lit2";
+        else if (hasUitdec) mode = "aller_lit1";
+      }
+
       const zone = st.decoucherZone || "BE";
       const isLong = Boolean(st.decoucherLong);
       const rawTravelMin = Math.max(0, parseInt(st.decoucherTravelMin, 10) || 0);
@@ -4625,7 +4691,7 @@
         const payableTravelMin = Math.max(0, rawTravelMin - 30);
         return {
           mode,
-          label: "1er lit (Aller : trajet >30m = " + payableTravelMin + "m, 0 € sur aller)",
+          label: "UITDEC (Départ découcher : trajet >30m = " + payableTravelMin + "m, 0 € sur aller)",
           countedDecoucher: 0,
           payableTravelMin,
           addedWorkMin: addTravelToWork ? payableTravelMin : 0,
@@ -4654,7 +4720,7 @@
           mode,
           zone,
           isLong,
-          label: "2ème lit (Retour " + (zone === "BE" ? "Belgique" : "Étranger") + (isLong ? " Long >24h" : " Court <=24h") + ")",
+          label: "DECUIT (Retour " + (zone === "BE" ? "Belgique" : "Étranger") + (isLong ? " Long >24h" : " Court <=24h") + ")",
           countedDecoucher: 1,
           payableTravelMin,
           addedWorkMin: addTravelToWork ? payableTravelMin : 0,
