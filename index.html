@@ -517,9 +517,20 @@
 
         <!-- 3. Bilan mensuel automatique (IndexedDB sans limite) -->
         <div class="pt-2 border-t border-slate-800 space-y-2">
-          <div class="flex items-center justify-between gap-2">
-            <span class="text-[11px] font-bold text-sky-400 uppercase">Cumul Mensuel Automatique</span>
-            <input type="month" id="monthly-filter-input" onchange="renderPayrollAndMonthlySummary()" class="bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-white focus:border-sky-400 focus:outline-none" />
+          <div class="flex items-center justify-between gap-2 pr-1">
+            <span class="text-[11px] font-bold text-sky-400 uppercase leading-tight">Cumul Mensuel Automatique</span>
+            <div class="relative min-w-[162px] sm:min-w-[176px] mr-1.5 shrink-0">
+              <div class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs font-bold text-white flex items-center justify-between gap-2 shadow-inner">
+                <span id="monthly-filter-display" class="truncate">Janvier 2026</span>
+                <svg class="w-3.5 h-3.5 text-sky-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+              </div>
+              <input type="month" id="monthly-filter-input"
+                onclick="try { if (this.showPicker) this.showPicker(); } catch(e) {}"
+                onchange="renderPayrollAndMonthlySummary()"
+                oninput="renderPayrollAndMonthlySummary()"
+                aria-label="Choisir le mois et l'ann&eacute;e"
+                class="capitalize opacity-0 absolute inset-0 w-full h-full cursor-pointer" />
+            </div>
           </div>
           <div id="monthly-calc-summary" class="space-y-2"></div>
         </div>
@@ -5104,6 +5115,21 @@
         const dService = parseDDMMYYYYToDate(appState.serviceDate) || new Date();
         targetYM = dService.getFullYear() + "-" + String(dService.getMonth() + 1).padStart(2, "0");
         if (monthInput) monthInput.value = targetYM;
+      }
+      const monthDisplay = document.getElementById("monthly-filter-display");
+      if (monthDisplay) {
+        const monthNamesCap = [
+          "Janvier", "F\u00e9vrier", "Mars", "Avril",
+          "Mai", "Juin", "Juillet", "Ao\u00fbt",
+          "Septembre", "Octobre", "Novembre", "D\u00e9cembre"
+        ];
+        const ymParts = String(targetYM).match(/^(\d{4})-(\d{2})$/);
+        if (ymParts) {
+          const mIdx = parseInt(ymParts[2], 10) - 1;
+          monthDisplay.textContent = (monthNamesCap[mIdx] || ymParts[2]) + " " + ymParts[1];
+        } else {
+          monthDisplay.textContent = targetYM;
+        }
       }
 
       const curBox = document.getElementById("current-prestation-calc-summary");
