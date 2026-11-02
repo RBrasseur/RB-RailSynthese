@@ -331,6 +331,94 @@
         </div>
       </div>
 
+      <!-- OPTIONS HORAIRES INITIALEMENT PREVUS (PERT), JOUR FERIE, GRAND RAPPEL & DECOUCHER (LIT) -->
+      <div class="pt-2 border-t border-slate-800 space-y-2">
+        <div class="flex flex-wrap items-center gap-1.5">
+          <label class="flex items-center gap-1.5 py-1 px-2 rounded-lg bg-slate-950 border border-slate-800 cursor-pointer select-none">
+            <input type="checkbox" id="chk-initially-planned" onchange="toggleInitiallyPlanned(this.checked)" class="w-3.5 h-3.5 accent-amber-500 rounded" />
+            <span class="text-[10px] font-bold text-amber-300 leading-none">Heures initialement pr&eacute;vues</span>
+          </label>
+
+          <label class="flex items-center gap-1.5 py-1 px-2 rounded-lg bg-slate-950 border border-slate-800 cursor-pointer select-none">
+            <input type="checkbox" id="chk-grand-rappel" onchange="toggleGrandRappel(this.checked)" class="w-3.5 h-3.5 accent-rose-500 rounded" />
+            <span class="text-[10px] font-bold text-rose-300 leading-none">Grand Rappel (RX/Cong&eacute; &bull; 100&euro;)</span>
+          </label>
+
+          <label class="flex items-center gap-1.5 py-1 px-2 rounded-lg bg-slate-950 border border-slate-800 cursor-pointer select-none">
+            <input type="checkbox" id="chk-holiday" onchange="toggleHolidayFlag(this.checked)" class="w-3.5 h-3.5 accent-sky-500 rounded" />
+            <span class="text-[10px] font-bold text-sky-300 leading-none">Jour f&eacute;ri&eacute; (Pay&eacute; Dimanche)</span>
+          </label>
+        </div>
+
+        <!-- Champs Heures initialement prévues (Écarts PERT) -->
+        <div id="initially-planned-box" class="hidden bg-slate-950 border border-amber-500/40 rounded-xl p-2.5 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold uppercase text-amber-400">Horaire &laquo; Initially planned &raquo;</span>
+            <span id="pert-ecart-badge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold">&Eacute;cart : 0 min (0 &euro;)</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[10px] text-slate-400 mb-0.5">D&eacute;but initial pr&eacute;vu</label>
+              <input type="text" id="initially-planned-start" placeholder="HH:MM" oninput="syncPayrollOptions()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs font-mono text-white focus:border-amber-500 focus:outline-none" />
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-400 mb-0.5">Fin initiale pr&eacute;vue</label>
+              <input type="text" id="initially-planned-end" placeholder="HH:MM" oninput="syncPayrollOptions()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs font-mono text-white focus:border-amber-500 focus:outline-none" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Gestion des Découchers (Symbole "Lit") — Règle stricte anti-doublon -->
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 space-y-2">
+          <div class="flex items-center justify-between gap-2">
+            <label class="text-[10px] font-bold uppercase text-sky-400 shrink-0">D&eacute;coucher (&laquo; Lit &raquo;) :</label>
+            <select id="decoucher-mode-select" onchange="syncPayrollOptions()" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-[11px] font-bold text-white focus:border-sky-400 focus:outline-none">
+              <option value="none">Aucun d&eacute;coucher</option>
+              <option value="aller_lit1">1er lit &mdash; Aller (Trajet &gt; 30m = travail &bull; Jamais compt&eacute; ici)</option>
+              <option value="retour_lit2">2&egrave;me lit &mdash; Retour d&eacute;coucher (Comptabilis&eacute; sur cette 2e prestation)</option>
+            </select>
+          </div>
+
+          <div id="decoucher-details-box" class="hidden space-y-2 pt-1.5 border-t border-slate-800/80">
+            <div id="decoucher-aller-notice" class="hidden bg-amber-950/60 border border-amber-700/60 rounded-lg p-2 text-[10px] text-amber-200 leading-relaxed">
+              <strong>R&egrave;gle stricte anti-doublon (1er lit &mdash; Aller) :</strong> Le d&eacute;coucher n'est <strong>jamais</strong> comptabilis&eacute; sur la 1re prestation (aller). Seul le trajet h&ocirc;tel au-del&agrave; de 30 min compte comme temps de travail. Encodez le d&eacute;coucher uniquement sur la 2e prestation (retour).
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[10px] text-slate-400 mb-0.5">Trajet h&ocirc;tel (minutes)</label>
+                <input type="number" id="decoucher-travel-min" min="0" placeholder="Ex: 45" oninput="syncPayrollOptions()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs font-mono text-white focus:border-sky-400 focus:outline-none" />
+              </div>
+              <div>
+                <label class="block text-[10px] text-slate-400 mb-0.5">Repos h&ocirc;tel (HH:MM &gt; 09:00)</label>
+                <input type="text" id="decoucher-rest-hours" placeholder="Ex: 10:30" oninput="syncPayrollOptions()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs font-mono text-white focus:border-sky-400 focus:outline-none" />
+              </div>
+            </div>
+
+            <label class="flex items-center gap-1.5 text-[10px] text-slate-300 cursor-pointer select-none">
+              <input type="checkbox" id="chk-decoucher-add-travel" onchange="syncPayrollOptions()" class="w-3.5 h-3.5 accent-sky-500 rounded" />
+              <span>Inclure le trajet h&ocirc;tel imposable dans la dur&eacute;e de travail si non inclus dans les t&acirc;ches</span>
+            </label>
+
+            <div id="decoucher-retour-indemnity-box" class="hidden grid grid-cols-2 gap-2 pt-1 border-t border-slate-800/80">
+              <div>
+                <label class="block text-[10px] font-bold text-emerald-400 mb-0.5">Zone du D&eacute;coucher</label>
+                <select id="decoucher-zone-select" onchange="syncPayrollOptions()" class="w-full bg-slate-900 border border-emerald-600/50 rounded-lg px-2 py-1 text-xs font-bold text-emerald-300">
+                  <option value="BE">Belgique (52&euro; net + 68&euro; brut)</option>
+                  <option value="INT">&Eacute;tranger (92&euro; net)</option>
+                </select>
+              </div>
+              <div class="flex items-end">
+                <label class="w-full flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg bg-slate-900 border border-slate-700 cursor-pointer select-none">
+                  <input type="checkbox" id="chk-decoucher-long" onchange="syncPayrollOptions()" class="w-3.5 h-3.5 accent-emerald-500 rounded" />
+                  <span class="text-[10px] font-bold text-amber-300 leading-none">D&eacute;coucher Long (&gt; 24h)</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div id="duration-warning" class="hidden bg-rose-950/80 border border-rose-700 rounded-xl p-2 text-[11px] text-rose-200"></div>
     </section>
 
@@ -374,6 +462,34 @@
       <button onclick="addServiceActivity()" class="w-full py-2.5 rounded-2xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-amber-400 font-bold text-xs shadow">
         + Ajouter une t&acirc;che manuellement
       </button>
+
+      <!-- SYNTHESE DES CALCULS DE LA PRESTATION, CONTRAT DE TRAVAIL & BILAN MENSUEL AUTOMATIQUE -->
+      <div id="payroll-and-monthly-panel" class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 shadow space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+          <div>
+            <h2 class="text-xs font-bold uppercase tracking-wider text-amber-400">Calculs CCT, Contrat &amp; Cumul Mensuel</h2>
+            <p class="text-[10px] text-slate-400">Nuit (22h-06h) &bull; Sam/Dim/F&eacute;ri&eacute; (selon jour de d&eacute;but) &bull; PERT &bull; D&eacute;coucher</p>
+          </div>
+          <button onclick="saveDayToHistory()" class="px-2.5 py-1 rounded-xl bg-emerald-500/20 active:bg-emerald-500/30 border border-emerald-500/50 text-emerald-300 font-bold text-[10px] shadow shrink-0">
+            + M&eacute;moriser prestation
+          </button>
+        </div>
+
+        <!-- 1. Synthèse de la prestation en cours -->
+        <div id="current-prestation-calc-summary" class="space-y-2"></div>
+
+        <!-- 2. Vérification du respect du contrat de travail -->
+        <div id="contract-compliance-box" class="space-y-1.5 pt-2 border-t border-slate-800"></div>
+
+        <!-- 3. Bilan mensuel automatique (IndexedDB sans limite) -->
+        <div class="pt-2 border-t border-slate-800 space-y-2">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-[11px] font-bold text-sky-400 uppercase">Cumul Mensuel Automatique (IndexedDB)</span>
+            <input type="month" id="monthly-filter-input" onchange="renderPayrollAndMonthlySummary()" class="bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-xs font-mono text-white focus:border-sky-400 focus:outline-none" />
+          </div>
+          <div id="monthly-calc-summary" class="space-y-2"></div>
+        </div>
+      </div>
     </div>
 
     <!-- ONGLET 2 : BULLETINS DE FREINAGE (REBU) -->
@@ -786,6 +902,17 @@
       serviceDate: "",
       serviceNumber: "",
       expectedDuration: "",
+      initiallyPlannedEnabled: false,
+      initiallyPlannedStart: "",
+      initiallyPlannedEnd: "",
+      grandRappel: false,
+      isHoliday: false,
+      decoucherMode: "none",
+      decoucherZone: "BE",
+      decoucherLong: false,
+      decoucherTravelMin: "",
+      decoucherRestHours: "",
+      decoucherAddTravel: false,
       serviceSheetImages: [],
       serviceSheetName: "",
       pdfIncludeServiceDoc: false,
@@ -1299,11 +1426,19 @@
 
     function syncHeader() {
       appState.driverName = document.getElementById("driver-name").value;
-      appState.serviceDate = document.getElementById("service-date").value;
+      const newDate = document.getElementById("service-date").value;
+      const dateChanged = (newDate !== appState.serviceDate);
+      appState.serviceDate = newDate;
       appState.serviceNumber = document.getElementById("service-number").value;
       appState.expectedDuration = document.getElementById("service-expected-duration").value;
       document.getElementById("header-driver-display").textContent = appState.driverName || "Conducteur";
+      if (dateChanged && isBelgianPublicHoliday(appState.serviceDate)) {
+        appState.isHoliday = true;
+        const chkHol = document.getElementById("chk-holiday");
+        if (chkHol) chkHol.checked = true;
+      }
       updateCloudPathPreview();
+      renderPayrollAndMonthlySummary();
       saveState();
     }
 
@@ -1351,6 +1486,17 @@
         serviceDate: "",
         serviceNumber: "",
         expectedDuration: "",
+        initiallyPlannedEnabled: false,
+        initiallyPlannedStart: "",
+        initiallyPlannedEnd: "",
+        grandRappel: false,
+        isHoliday: false,
+        decoucherMode: "none",
+        decoucherZone: "BE",
+        decoucherLong: false,
+        decoucherTravelMin: "",
+        decoucherRestHours: "",
+        decoucherAddTravel: false,
         serviceSheetImages: [],
         serviceSheetName: "",
         pdfIncludeServiceDoc: Boolean(appState.pdfIncludeServiceDoc),
@@ -1585,10 +1731,12 @@
       document.getElementById("chk-pdf-service").checked = Boolean(appState.pdfIncludeServiceDoc);
       document.getElementById("chk-pdf-rebu").checked = Boolean(appState.pdfIncludeRebuDoc);
       document.getElementById("chk-pdf-other").checked = appState.pdfIncludeOtherDocs !== undefined ? Boolean(appState.pdfIncludeOtherDocs) : true;
+      syncPayrollUIControlsFromState();
       renderTaskTypesBadges();
       renderServiceActivities();
       renderServiceSheetPreview();
       checkServiceDuration();
+      renderPayrollAndMonthlySummary();
       renderTrainBulletins();
       renderOtherDocs();
       updateCloudPathPreview();
@@ -1900,6 +2048,9 @@
         badge.className = "text-[11px] font-mono px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-700/60";
         warn.classList.add("hidden");
       }
+      if (typeof renderPayrollAndMonthlySummary === "function") {
+        renderPayrollAndMonthlySummary();
+      }
     }
 
     function loadDemoService(silent) {
@@ -1963,6 +2114,17 @@
       const foundDate = extractDateFromServiceText(raw);
       if (foundDate) {
         appState.serviceDate = foundDate;
+        if (isBelgianPublicHoliday(foundDate)) {
+          appState.isHoliday = true;
+        }
+      }
+
+      // Extraction automatique de la ligne "Initially planned" si présente sur la fiche
+      const initPlanMatch = raw.match(/Initially\s+planned[^\n]*?(\b[0-2]?\d:[0-5]\d\b)[^\n]*?(\b[0-2]?\d:[0-5]\d\b)/i);
+      if (initPlanMatch) {
+        appState.initiallyPlannedEnabled = true;
+        appState.initiallyPlannedStart = initPlanMatch[1].padStart(5, "0");
+        appState.initiallyPlannedEnd = initPlanMatch[2].padStart(5, "0");
       }
 
       // Extraire le N° de prestation hors des lignes de remise (+32)
@@ -3649,6 +3811,7 @@
             '<div><strong>Service :</strong> ' + escapeHtml(appState.serviceNumber) + ' (' + escapeHtml(document.getElementById("duration-badge").textContent) + ')</div>' +
           '</div>' +
         '</div>' +
+        buildPrintablePayrollBlock() +
         '<h2 style="font-size: 14px; font-weight: bold; text-transform: uppercase; background: #f1f5f9; padding: 6px 8px; margin-bottom: 8px;">1. Fiche de Prestation (Planifi&eacute; / R&eacute;el) &amp; Notes</h2>' +
         '<div style="margin-bottom: 16px;">' + actsHtml + '</div>' +
         serviceDocHtml +
@@ -3949,16 +4112,766 @@
       }
     }
 
+    // =========================================================================
+    // MOTEUR DE CALCULS CCT JUIN 2026, JOURS FERIES BELGES, CONTRAT & MENSUEL
+    // =========================================================================
+
+    function parseHHMMToMinutes(timeStr) {
+      if (!timeStr) return null;
+      const m = String(timeStr).trim().match(/^(\d{1,2}):(\d{2})$/);
+      if (!m) return null;
+      const hh = parseInt(m[1], 10);
+      const mm = parseInt(m[2], 10);
+      if (isNaN(hh) || isNaN(mm) || hh < 0 || hh > 29 || mm < 0 || mm > 59) return null;
+      return hh * 60 + mm;
+    }
+
+    function formatMinutesToHHMM(totalMinutes) {
+      const safeMin = Math.max(0, Math.round(Number(totalMinutes) || 0));
+      const hh = Math.floor(safeMin / 60);
+      const mm = safeMin % 60;
+      return String(hh).padStart(2, "0") + ":" + String(mm).padStart(2, "0");
+    }
+
+    function parseDDMMYYYYToDate(dateStr) {
+      const formatted = formatToDDMMYYYY(dateStr);
+      const m = String(formatted || "").trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      if (!m) return null;
+      const dd = parseInt(m[1], 10);
+      const mm = parseInt(m[2], 10);
+      const yyyy = parseInt(m[3], 10);
+      const d = new Date(yyyy, mm - 1, dd, 12, 0, 0);
+      if (isNaN(d.getTime())) return null;
+      return d;
+    }
+
+    // Calcul des jours fériés légaux en Belgique (fixes + mobiles liés à Pâques)
+    function isBelgianPublicHoliday(dateStr) {
+      const d = parseDDMMYYYYToDate(dateStr);
+      if (!d) return false;
+      const yyyy = d.getFullYear();
+      const mm = d.getMonth() + 1;
+      const dd = d.getDate();
+      const key = String(dd).padStart(2, "0") + "/" + String(mm).padStart(2, "0");
+
+      const fixedHolidays = ["01/01", "01/05", "21/07", "15/08", "01/11", "11/11", "25/12"];
+      if (fixedHolidays.includes(key)) return true;
+
+      // Algorithme de Butcher-Meeus pour le dimanche de Pâques
+      const a = yyyy % 19;
+      const b = Math.floor(yyyy / 100);
+      const c = yyyy % 100;
+      const dDiv = Math.floor(b / 4);
+      const e = b % 4;
+      const f = Math.floor((b + 8) / 25);
+      const g = Math.floor((b - f + 1) / 3);
+      const h = (19 * a + b - dDiv - g + 15) % 30;
+      const i = Math.floor(c / 4);
+      const k = c % 4;
+      const l = (32 + 2 * e + 2 * i - h - k) % 7;
+      const m = Math.floor((a + 11 * h + 22 * l) / 451);
+      const easterMonth = Math.floor((h + l - 7 * m + 114) / 31);
+      const easterDay = ((h + l - 7 * m + 114) % 31) + 1;
+
+      const easterDate = new Date(yyyy, easterMonth - 1, easterDay, 12, 0, 0);
+      const addDays = (base, days) => {
+        const dt = new Date(base.getTime());
+        dt.setDate(dt.getDate() + days);
+        return dt.getDate() === dd && (dt.getMonth() + 1) === mm;
+      };
+
+      // Lundi de Pâques (+1), Ascension (+39), Lundi de Pentecôte (+50)
+      if (addDays(easterDate, 1) || addDays(easterDate, 39) || addDays(easterDate, 50)) {
+        return true;
+      }
+      return false;
+    }
+
+    function getISOWeekKey(dateObj) {
+      if (!dateObj) return "unknown";
+      const d = new Date(Date.UTC(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate()));
+      const dayNum = d.getUTCDay() || 7;
+      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+      const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+      return d.getUTCFullYear() + "-W" + String(weekNo).padStart(2, "0");
+    }
+
+    function getPrestationTimeBounds(stateObj) {
+      const st = stateObj || appState;
+      const acts = Array.isArray(st.activities) ? st.activities : [];
+      let startStr = "";
+      let endStr = "";
+      let plannedStartStr = "";
+      let plannedEndStr = "";
+
+      if (acts.length > 0) {
+        const first = acts[0];
+        const last = acts[acts.length - 1];
+        plannedStartStr = (first.startTime || "").trim();
+        plannedEndStr = (last.endTime || last.startTime || "").trim();
+        startStr = (first.realStartTime && first.realStartTime.trim() !== "")
+          ? first.realStartTime.trim()
+          : plannedStartStr;
+        endStr = (last.realEndTime && last.realEndTime.trim() !== "")
+          ? last.realEndTime.trim()
+          : ((last.endTime && last.endTime.trim() !== "")
+              ? last.endTime.trim()
+              : ((last.realStartTime && last.realStartTime.trim() !== "") ? last.realStartTime.trim() : plannedEndStr));
+      }
+
+      const startMin = parseHHMMToMinutes(startStr);
+      const rawEndMin = parseHHMMToMinutes(endStr);
+      let endMinContinuous = null;
+      let baseSpanMin = 0;
+
+      if (startMin !== null && rawEndMin !== null) {
+        endMinContinuous = rawEndMin < startMin ? rawEndMin + 1440 : rawEndMin;
+        baseSpanMin = Math.max(0, endMinContinuous - startMin);
+      } else if (st.expectedDuration) {
+        const expMin = parseHHMMToMinutes(st.expectedDuration);
+        if (expMin !== null) baseSpanMin = expMin;
+      }
+
+      return {
+        startStr,
+        endStr,
+        plannedStartStr,
+        plannedEndStr,
+        startMin,
+        rawEndMin,
+        endMinContinuous,
+        baseSpanMin
+      };
+    }
+
+    // 1. HEURES DE NUIT (Paiement) : Intersection stricte entre la prestation et [22:00 - 06:00]
+    function calculateNightMinutes(startMin, endMinContinuous) {
+      if (startMin === null || endMinContinuous === null || endMinContinuous <= startMin) return 0;
+      const nightWindows = [
+        [0, 360],     // 00:00 - 06:00 Jour J
+        [1320, 1800], // 22:00 Jour J - 06:00 Jour J+1
+        [2760, 2880]  // 22:00 Jour J+1 - 24:00 Jour J+1
+      ];
+      let nightMin = 0;
+      for (const [wStart, wEnd] of nightWindows) {
+        const interStart = Math.max(startMin, wStart);
+        const interEnd = Math.min(endMinContinuous, wEnd);
+        if (interEnd > interStart) {
+          nightMin += (interEnd - interStart);
+        }
+      }
+      return nightMin;
+    }
+
+    // 2. HEURES DE WEEK-END & JOURS FERIES (Règle du jour de début de la prestation) :
+    // - Si la prestation commence le vendredi (ou lun-jeu non férié) et se termine le samedi -> 0h de samedi payée.
+    // - Si la prestation commence le samedi (non férié) et se termine samedi ou dimanche -> toute la prestation est payée en samedi.
+    // - Si la prestation commence un dimanche OU un jour férié et se termine le jour même ou lundi -> toute la prestation est payée en dimanche.
+    function calculateWeekendMinutes(serviceDateStr, effectiveWorkMin, isHolidayFlag) {
+      const workMin = Math.max(0, Math.round(Number(effectiveWorkMin) || 0));
+      if (workMin === 0) {
+        return { totalWeekendMin: 0, saturdayMin: 0, sundayMin: 0, rateLabel: "Semaine (0h WE)" };
+      }
+      const d0 = parseDDMMYYYYToDate(serviceDateStr);
+      const isHol = Boolean(isHolidayFlag) || isBelgianPublicHoliday(serviceDateStr);
+
+      if (isHol) {
+        return {
+          totalWeekendMin: workMin,
+          saturdayMin: 0,
+          sundayMin: workMin,
+          rateLabel: "Jour férié (100% Dimanche)"
+        };
+      }
+
+      if (!d0) {
+        return { totalWeekendMin: 0, saturdayMin: 0, sundayMin: 0, rateLabel: "Date non définie" };
+      }
+
+      const dow0 = d0.getDay(); // 0 = Dimanche, 5 = Vendredi, 6 = Samedi
+      if (dow0 === 0) {
+        return {
+          totalWeekendMin: workMin,
+          saturdayMin: 0,
+          sundayMin: workMin,
+          rateLabel: "Début Dimanche (100% Dimanche)"
+        };
+      }
+      if (dow0 === 6) {
+        return {
+          totalWeekendMin: workMin,
+          saturdayMin: workMin,
+          sundayMin: 0,
+          rateLabel: "Début Samedi (100% Samedi)"
+        };
+      }
+
+      // Début du lundi au vendredi (hors jour férié), même si fin le samedi matin -> 0h de week-end payée
+      return {
+        totalWeekendMin: 0,
+        saturdayMin: 0,
+        sundayMin: 0,
+        rateLabel: dow0 === 5 ? "Début Vendredi (0h Samedi)" : "Semaine (0h WE)"
+      };
+    }
+
+    // 3. HEURES SUPPLEMENTAIRES JOURNALIERES (> 10h = 600 min sur une seule prestation)
+    function calculateDailyOvertimeMinutes(effectiveWorkMin) {
+      return Math.max(0, (Number(effectiveWorkMin) || 0) - 600);
+    }
+
+    // 4. PRIME "PETIT MATIN" : 50 € brut si la prestation commence entre 23h30 (1410 min) et 04h30 (270 min)
+    function calculatePetitMatinBonus(startMin) {
+      if (startMin === null || startMin === undefined) {
+        return { eligible: false, amountBrut: 0 };
+      }
+      const normStart = ((startMin % 1440) + 1440) % 1440;
+      const eligible = (normStart >= 1410 || normStart <= 270);
+      return {
+        eligible,
+        amountBrut: eligible ? 50 : 0
+      };
+    }
+
+    // 5. PRIMES DE FLEXIBILITE (Écarts PERT — Barème financier CCT Juin 2026)
+    function getPertBonusFromMinutes(ecartMin) {
+      const m = Math.max(0, Math.round(Number(ecartMin) || 0));
+      if (m <= 30) return 0;
+      if (m <= 45) return 20;
+      if (m <= 60) return 40;
+      if (m <= 75) return 40;
+      if (m <= 90) return 50;
+      if (m <= 105) return 60;
+      if (m <= 120) return 70;
+      return 80; // 121 minutes et +
+    }
+
+    function calculatePertFlexibility(enabled, initStartStr, initEndStr, actStartMin, actEndMinContinuous) {
+      if (!enabled) {
+        return { active: false, earlyStartMin: 0, lateEndMin: 0, totalEcartMin: 0, amountBrut: 0 };
+      }
+      const initStartMin = parseHHMMToMinutes(initStartStr);
+      const initEndRaw = parseHHMMToMinutes(initEndStr);
+      if (initStartMin === null || initEndRaw === null || actStartMin === null || actEndMinContinuous === null) {
+        return { active: true, earlyStartMin: 0, lateEndMin: 0, totalEcartMin: 0, amountBrut: 0 };
+      }
+
+      const initEndMinContinuous = initEndRaw < initStartMin ? initEndRaw + 1440 : initEndRaw;
+      const actDuration = Math.max(0, actEndMinContinuous - actStartMin);
+
+      let diffStart = initStartMin - actStartMin;
+      if (diffStart < -720) diffStart += 1440;
+      if (diffStart > 720) diffStart -= 1440;
+      const earlyStartMin = Math.max(0, diffStart);
+
+      const alignedActStart = initStartMin - diffStart;
+      const alignedActEnd = alignedActStart + actDuration;
+      const lateEndMin = Math.max(0, alignedActEnd - initEndMinContinuous);
+
+      const totalEcartMin = earlyStartMin + lateEndMin;
+      const amountBrut = getPertBonusFromMinutes(totalEcartMin);
+
+      return {
+        active: true,
+        earlyStartMin,
+        lateEndMin,
+        totalEcartMin,
+        amountBrut
+      };
+    }
+
+    // 6. RAPPELS : Grand Rappel (100 € brut sur jour initialement prévu comme inactif RX / congé)
+    function calculateGrandRappelBonus(isGrandRappel) {
+      return Boolean(isGrandRappel) ? 100 : 0;
+    }
+
+    // 7. GESTION DES DECOUCHERS (Symbole "Lit")
+    // RÈGLE STRICTE : Comptabilisé UNIQUEMENT sur la 2e prestation (retour_lit2), jamais sur la 1re (aller_lit1)
+    function calculateDecoucherDetails(stateObj) {
+      const st = stateObj || appState;
+      const mode = st.decoucherMode || "none";
+      const zone = st.decoucherZone || "BE";
+      const isLong = Boolean(st.decoucherLong);
+      const rawTravelMin = Math.max(0, parseInt(st.decoucherTravelMin, 10) || 0);
+      const addTravelToWork = Boolean(st.decoucherAddTravel);
+      const restMin = parseHHMMToMinutes(st.decoucherRestHours || "");
+
+      if (mode === "aller_lit1") {
+        const payableTravelMin = Math.max(0, rawTravelMin - 30);
+        return {
+          mode,
+          label: "1er lit (Aller - 0 € ici, compté au retour)",
+          countedDecoucher: 0,
+          rawTravelMin,
+          payableTravelMin,
+          addedWorkMin: addTravelToWork ? payableTravelMin : 0,
+          indemnityNet: 0,
+          indemnityBrut: 0,
+          restMin,
+          restCompliant: restMin === null ? true : (restMin > 540)
+        };
+      }
+
+      if (mode === "retour_lit2") {
+        const payableTravelMin = rawTravelMin;
+        let indemnityNet = 0;
+        let indemnityBrut = 0;
+
+        if (zone === "BE") {
+          if (isLong) {
+            indemnityNet = 78;
+            indemnityBrut = 102;
+          } else {
+            indemnityNet = 52;
+            indemnityBrut = 68;
+          }
+        } else {
+          indemnityNet = isLong ? 138 : 92;
+          indemnityBrut = 0;
+        }
+
+        return {
+          mode,
+          zone,
+          isLong,
+          label: "2ème lit (Retour " + (zone === "BE" ? "Belgique" : "Étranger") + (isLong ? " Long > 24h" : "") + ")",
+          countedDecoucher: 1,
+          rawTravelMin,
+          payableTravelMin,
+          addedWorkMin: addTravelToWork ? payableTravelMin : 0,
+          indemnityNet,
+          indemnityBrut,
+          restMin,
+          restCompliant: restMin === null ? true : (isLong ? restMin > 1440 : restMin > 540)
+        };
+      }
+
+      return {
+        mode: "none",
+        label: "Aucun",
+        countedDecoucher: 0,
+        rawTravelMin: 0,
+        payableTravelMin: 0,
+        addedWorkMin: 0,
+        indemnityNet: 0,
+        indemnityBrut: 0,
+        restMin: null,
+        restCompliant: true
+      };
+    }
+
+    function evaluatePrestationMetrics(stateObj) {
+      const st = stateObj || appState;
+      const bounds = getPrestationTimeBounds(st);
+      const decoucher = calculateDecoucherDetails(st);
+      const effectiveWorkMin = bounds.baseSpanMin + decoucher.addedWorkMin;
+
+      const nightMin = calculateNightMinutes(bounds.startMin, bounds.endMinContinuous);
+      const weekend = calculateWeekendMinutes(st.serviceDate, effectiveWorkMin, st.isHoliday);
+      const dailyOvertimeMin = calculateDailyOvertimeMinutes(effectiveWorkMin);
+      const petitMatin = calculatePetitMatinBonus(bounds.startMin);
+      const pert = calculatePertFlexibility(
+        Boolean(st.initiallyPlannedEnabled),
+        st.initiallyPlannedStart,
+        st.initiallyPlannedEnd,
+        bounds.startMin,
+        bounds.endMinContinuous
+      );
+      const grandRappelBrut = calculateGrandRappelBonus(st.grandRappel);
+
+      const totalBrut = petitMatin.amountBrut + pert.amountBrut + grandRappelBrut + decoucher.indemnityBrut;
+      const totalNet = decoucher.indemnityNet;
+
+      return {
+        serviceDate: formatToDDMMYYYY(st.serviceDate || ""),
+        serviceNumber: st.serviceNumber || "",
+        bounds,
+        effectiveWorkMin,
+        nightMin,
+        weekend,
+        dailyOvertimeMin,
+        petitMatin,
+        pert,
+        grandRappelBrut,
+        decoucher,
+        totalBrut,
+        totalNet
+      };
+    }
+
+    function computeMonthlyAndContractAggregation(targetMonthYYYYMM) {
+      const mapByKey = new Map();
+
+      if (Array.isArray(historyEntries)) {
+        for (let i = historyEntries.length - 1; i >= 0; i--) {
+          const item = historyEntries[i];
+          if (!item || !item.state) continue;
+          const sDate = formatToDDMMYYYY(item.state.serviceDate || "");
+          if (!sDate) continue;
+          const sNum = (item.state.serviceNumber || "SRV").trim().toUpperCase();
+          mapByKey.set(sDate + "__" + sNum, item.state);
+        }
+      }
+
+      const activeDate = formatToDDMMYYYY(appState.serviceDate || "");
+      if (activeDate && ((appState.activities && appState.activities.length > 0) || appState.expectedDuration || appState.grandRappel)) {
+        const activeNum = (appState.serviceNumber || "SRV").trim().toUpperCase();
+        mapByKey.set(activeDate + "__" + activeNum, appState);
+      }
+
+      const allStates = Array.from(mapByKey.values());
+      allStates.sort((a, b) => {
+        const da = parseDDMMYYYYToDate(a.serviceDate);
+        const db = parseDDMMYYYYToDate(b.serviceDate);
+        return (da ? da.getTime() : 0) - (db ? db.getTime() : 0);
+      });
+
+      const monthStates = allStates.filter(st => {
+        const d = parseDDMMYYYYToDate(st.serviceDate);
+        if (!d) return false;
+        const ym = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
+        return !targetMonthYYYYMM || ym === targetMonthYYYYMM;
+      });
+
+      let monthWorkMin = 0;
+      let monthNightMin = 0;
+      let monthWeekendMin = 0;
+      let monthSatMin = 0;
+      let monthSunMin = 0;
+      let monthDailyOvertimeMin = 0;
+      let monthDecouchersCount = 0;
+      let monthPetitMatinBrut = 0;
+      let monthPertBrut = 0;
+      let monthGrandRappelBrut = 0;
+      let monthDecoucherBrut = 0;
+      let monthDecoucherNet = 0;
+
+      const weeklyTotals = {};
+
+      monthStates.forEach(st => {
+        const m = evaluatePrestationMetrics(st);
+        monthWorkMin += m.effectiveWorkMin;
+        monthNightMin += m.nightMin;
+        monthWeekendMin += m.weekend.totalWeekendMin;
+        monthSatMin += m.weekend.saturdayMin;
+        monthSunMin += m.weekend.sundayMin;
+        monthDailyOvertimeMin += m.dailyOvertimeMin;
+        monthDecouchersCount += m.decoucher.countedDecoucher;
+        monthPetitMatinBrut += m.petitMatin.amountBrut;
+        monthPertBrut += m.pert.amountBrut;
+        monthGrandRappelBrut += m.grandRappelBrut;
+        monthDecoucherBrut += m.decoucher.indemnityBrut;
+        monthDecoucherNet += m.decoucher.indemnityNet;
+
+        const dObj = parseDDMMYYYYToDate(st.serviceDate);
+        const wkKey = getISOWeekKey(dObj);
+        weeklyTotals[wkKey] = (weeklyTotals[wkKey] || 0) + m.effectiveWorkMin;
+      });
+
+      let monthWeeklyOvertimeMin = 0;
+      const weekKeys = Object.keys(weeklyTotals);
+      weekKeys.forEach(k => {
+        if (weeklyTotals[k] > 2760) {
+          monthWeeklyOvertimeMin += (weeklyTotals[k] - 2760);
+        }
+      });
+
+      const nbActiveWeeks = Math.max(1, weekKeys.length);
+      const avgWeeklyMin = Math.round(monthWorkMin / nbActiveWeeks);
+      const over38AverageTotalMin = Math.max(0, monthWorkMin - (weekKeys.length * 2280));
+      const totalRetainedOvertimeMin = Math.max(monthDailyOvertimeMin, monthWeeklyOvertimeMin);
+
+      return {
+        prestationsCount: monthStates.length,
+        monthWorkMin,
+        monthNightMin,
+        monthWeekendMin,
+        monthSatMin,
+        monthSunMin,
+        monthDailyOvertimeMin,
+        monthWeeklyOvertimeMin,
+        avgWeeklyMin,
+        over38AverageTotalMin,
+        totalRetainedOvertimeMin,
+        monthDecouchersCount,
+        monthPetitMatinBrut,
+        monthPertBrut,
+        monthGrandRappelBrut,
+        monthDecoucherBrut,
+        monthDecoucherNet,
+        totalMonthBrut: monthPetitMatinBrut + monthPertBrut + monthGrandRappelBrut + monthDecoucherBrut,
+        totalMonthNet: monthDecoucherNet,
+        weeklyTotals,
+        allStatesChronological: allStates
+      };
+    }
+
+    function syncPayrollUIControlsFromState() {
+      const chkInit = document.getElementById("chk-initially-planned");
+      const initBox = document.getElementById("initially-planned-box");
+      const initStartInp = document.getElementById("initially-planned-start");
+      const initEndInp = document.getElementById("initially-planned-end");
+      const chkRappel = document.getElementById("chk-grand-rappel");
+      const chkHol = document.getElementById("chk-holiday");
+      const decModeSel = document.getElementById("decoucher-mode-select");
+      const decDetailsBox = document.getElementById("decoucher-details-box");
+      const decAllerNotice = document.getElementById("decoucher-aller-notice");
+      const decRetourBox = document.getElementById("decoucher-retour-indemnity-box");
+      const decTravelInp = document.getElementById("decoucher-travel-min");
+      const decRestInp = document.getElementById("decoucher-rest-hours");
+      const chkAddTravel = document.getElementById("chk-decoucher-add-travel");
+      const decZoneSel = document.getElementById("decoucher-zone-select");
+      const chkDecLong = document.getElementById("chk-decoucher-long");
+
+      if (chkInit) chkInit.checked = Boolean(appState.initiallyPlannedEnabled);
+      if (initBox) initBox.classList.toggle("hidden", !appState.initiallyPlannedEnabled);
+      if (initStartInp) initStartInp.value = appState.initiallyPlannedStart || "";
+      if (initEndInp) initEndInp.value = appState.initiallyPlannedEnd || "";
+      if (chkRappel) chkRappel.checked = Boolean(appState.grandRappel);
+      const effectiveHol = Boolean(appState.isHoliday) || isBelgianPublicHoliday(appState.serviceDate);
+      if (chkHol) chkHol.checked = effectiveHol;
+
+      const mode = appState.decoucherMode || "none";
+      if (decModeSel) decModeSel.value = mode;
+      if (decDetailsBox) decDetailsBox.classList.toggle("hidden", mode === "none");
+      if (decAllerNotice) decAllerNotice.classList.toggle("hidden", mode !== "aller_lit1");
+      if (decRetourBox) decRetourBox.classList.toggle("hidden", mode !== "retour_lit2");
+      if (decTravelInp) decTravelInp.value = appState.decoucherTravelMin || "";
+      if (decRestInp) decRestInp.value = appState.decoucherRestHours || "";
+      if (chkAddTravel) chkAddTravel.checked = Boolean(appState.decoucherAddTravel);
+      if (decZoneSel) decZoneSel.value = appState.decoucherZone || "BE";
+      if (chkDecLong) chkDecLong.checked = Boolean(appState.decoucherLong);
+    }
+
+    function toggleInitiallyPlanned(isChecked) {
+      appState.initiallyPlannedEnabled = Boolean(isChecked);
+      const box = document.getElementById("initially-planned-box");
+      if (box) box.classList.toggle("hidden", !appState.initiallyPlannedEnabled);
+      syncPayrollOptions();
+    }
+
+    function toggleGrandRappel(isChecked) {
+      appState.grandRappel = Boolean(isChecked);
+      syncPayrollOptions();
+    }
+
+    function toggleHolidayFlag(isChecked) {
+      appState.isHoliday = Boolean(isChecked);
+      syncPayrollOptions();
+    }
+
+    function syncPayrollOptions() {
+      const chkInit = document.getElementById("chk-initially-planned");
+      const initStartInp = document.getElementById("initially-planned-start");
+      const initEndInp = document.getElementById("initially-planned-end");
+      const chkRappel = document.getElementById("chk-grand-rappel");
+      const chkHol = document.getElementById("chk-holiday");
+      const decModeSel = document.getElementById("decoucher-mode-select");
+      const decTravelInp = document.getElementById("decoucher-travel-min");
+      const decRestInp = document.getElementById("decoucher-rest-hours");
+      const chkAddTravel = document.getElementById("chk-decoucher-add-travel");
+      const decZoneSel = document.getElementById("decoucher-zone-select");
+      const chkDecLong = document.getElementById("chk-decoucher-long");
+
+      if (chkInit) appState.initiallyPlannedEnabled = Boolean(chkInit.checked);
+      if (initStartInp) appState.initiallyPlannedStart = initStartInp.value.trim();
+      if (initEndInp) appState.initiallyPlannedEnd = initEndInp.value.trim();
+      if (chkRappel) appState.grandRappel = Boolean(chkRappel.checked);
+      if (chkHol) appState.isHoliday = Boolean(chkHol.checked);
+      if (decModeSel) appState.decoucherMode = decModeSel.value;
+      if (decTravelInp) appState.decoucherTravelMin = decTravelInp.value.trim();
+      if (decRestInp) appState.decoucherRestHours = decRestInp.value.trim();
+      if (chkAddTravel) appState.decoucherAddTravel = Boolean(chkAddTravel.checked);
+      if (decZoneSel) appState.decoucherZone = decZoneSel.value;
+      if (chkDecLong) appState.decoucherLong = Boolean(chkDecLong.checked);
+
+      const detailsBox = document.getElementById("decoucher-details-box");
+      const allerNotice = document.getElementById("decoucher-aller-notice");
+      const retourBox = document.getElementById("decoucher-retour-indemnity-box");
+
+      if (detailsBox) detailsBox.classList.toggle("hidden", appState.decoucherMode === "none");
+      if (allerNotice) allerNotice.classList.toggle("hidden", appState.decoucherMode !== "aller_lit1");
+      if (retourBox) retourBox.classList.toggle("hidden", appState.decoucherMode !== "retour_lit2");
+
+      renderPayrollAndMonthlySummary();
+      saveState();
+    }
+
+    function renderPayrollAndMonthlySummary() {
+      const m = evaluatePrestationMetrics(appState);
+
+      const pertBadge = document.getElementById("pert-ecart-badge");
+      if (pertBadge) {
+        pertBadge.textContent = "Écart : " + m.pert.totalEcartMin + " min (" + m.pert.amountBrut + " € brut)";
+      }
+
+      const monthInput = document.getElementById("monthly-filter-input");
+      let targetYM = monthInput ? monthInput.value : "";
+      if (!targetYM) {
+        const dService = parseDDMMYYYYToDate(appState.serviceDate) || new Date();
+        targetYM = dService.getFullYear() + "-" + String(dService.getMonth() + 1).padStart(2, "0");
+        if (monthInput) monthInput.value = targetYM;
+      }
+
+      const curBox = document.getElementById("current-prestation-calc-summary");
+      if (curBox) {
+        curBox.innerHTML =
+          '<div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center font-mono text-xs">' +
+            '<div class="bg-slate-950 border border-slate-800 rounded-xl p-2">' +
+              '<div class="text-[9px] uppercase text-slate-400">1. Heures Nuit (22h-06h)</div>' +
+              '<div class="text-sm font-bold text-indigo-300">' + formatMinutesToHHMM(m.nightMin) + '</div>' +
+            '</div>' +
+            '<div class="bg-slate-950 border border-slate-800 rounded-xl p-2">' +
+              '<div class="text-[9px] uppercase text-slate-400">2. Week-end / F&eacute;ri&eacute;</div>' +
+              '<div class="text-sm font-bold text-sky-300">' + formatMinutesToHHMM(m.weekend.totalWeekendMin) + '</div>' +
+              '<div class="text-[9px] text-slate-400">' +
+                (m.weekend.saturdayMin > 0 ? '100% Sam (' + formatMinutesToHHMM(m.weekend.saturdayMin) + ')' :
+                 (m.weekend.sundayMin > 0 ? '100% Dim (' + formatMinutesToHHMM(m.weekend.sundayMin) + ')' : escapeHtml(m.weekend.rateLabel))) +
+              '</div>' +
+            '</div>' +
+            '<div class="bg-slate-950 border border-slate-800 rounded-xl p-2">' +
+              '<div class="text-[9px] uppercase text-slate-400">3. HS Jour (&gt; 10h)</div>' +
+              '<div class="text-sm font-bold ' + (m.dailyOvertimeMin > 0 ? 'text-rose-400' : 'text-emerald-400') + '">' + formatMinutesToHHMM(m.dailyOvertimeMin) + '</div>' +
+            '</div>' +
+            '<div class="bg-slate-950 border border-slate-800 rounded-xl p-2">' +
+              '<div class="text-[9px] uppercase text-slate-400">Primes Prestation</div>' +
+              '<div class="text-sm font-bold text-amber-300">' + m.totalBrut + ' &euro; brut</div>' +
+              (m.totalNet > 0 ? '<div class="text-[10px] font-bold text-emerald-400">+ ' + m.totalNet + ' &euro; net</div>' : '') +
+            '</div>' +
+          '</div>' +
+          '<div class="flex flex-wrap gap-1.5 text-[10px] font-mono pt-1">' +
+            '<span class="px-2 py-0.5 rounded bg-slate-950 border border-slate-800 text-slate-300">Travail effectif : <strong>' + formatMinutesToHHMM(m.effectiveWorkMin) + '</strong></span>' +
+            '<span class="px-2 py-0.5 rounded bg-slate-950 border ' + (m.petitMatin.eligible ? 'border-amber-500/50 text-amber-300 font-bold' : 'border-slate-800 text-slate-400') + '">4. Petit Matin : ' + m.petitMatin.amountBrut + ' &euro; brut</span>' +
+            '<span class="px-2 py-0.5 rounded bg-slate-950 border ' + (m.pert.amountBrut > 0 ? 'border-amber-500/50 text-amber-300 font-bold' : 'border-slate-800 text-slate-400') + '">5. Flexibilit&eacute; PERT (' + m.pert.totalEcartMin + 'm) : ' + m.pert.amountBrut + ' &euro; brut</span>' +
+            (m.grandRappelBrut > 0 ? '<span class="px-2 py-0.5 rounded bg-rose-950 border border-rose-500/60 text-rose-300 font-bold">6. Grand Rappel : 100 &euro; brut</span>' : '') +
+            (m.decoucher.mode !== "none"
+              ? '<span class="px-2 py-0.5 rounded bg-sky-950 border border-sky-500/50 text-sky-200 font-bold">7. ' + escapeHtml(m.decoucher.label) +
+                (m.decoucher.countedDecoucher > 0 ? ' : ' + m.decoucher.indemnityNet + ' &euro; net' + (m.decoucher.indemnityBrut > 0 ? ' + ' + m.decoucher.indemnityBrut + ' &euro; brut' : '') : '') +
+                '</span>'
+              : '') +
+          '</div>';
+      }
+
+      const monthly = computeMonthlyAndContractAggregation(targetYM);
+      const compBox = document.getElementById("contract-compliance-box");
+      if (compBox) {
+        const dObj = parseDDMMYYYYToDate(appState.serviceDate);
+        const curWeekKey = dObj ? getISOWeekKey(dObj) : null;
+        const curWeekMin = (curWeekKey && monthly.weeklyTotals[curWeekKey]) ? monthly.weeklyTotals[curWeekKey] : m.effectiveWorkMin;
+
+        const alerts = [];
+        if (m.effectiveWorkMin > 600) {
+          alerts.push("Dépassement journalier (> 10h00) : +" + formatMinutesToHHMM(m.dailyOvertimeMin) + " d'heures supplémentaires.");
+        }
+        if (curWeekMin > 2760) {
+          alerts.push("Dépassement hebdomadaire (> 46h00 sur " + curWeekKey + ") : " + formatMinutesToHHMM(curWeekMin) + ".");
+        }
+        if (monthly.avgWeeklyMin > 2280 && monthly.prestationsCount > 0) {
+          alerts.push("Moyenne hebdomadaire supérieure à 38h00 : " + formatMinutesToHHMM(monthly.avgWeeklyMin) + "/sem.");
+        }
+        if (!m.decoucher.restCompliant) {
+          alerts.push("Attention : Temps de repos hors domicile inférieur au seuil réglementaire (> 9h00 consécutives / > 24h00 si long).");
+        }
+
+        compBox.innerHTML =
+          '<div class="flex items-center justify-between text-[10px]">' +
+            '<span class="font-bold uppercase text-slate-400">Respect du contrat de travail :</span>' +
+            (alerts.length === 0
+              ? '<span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-700/60 font-bold">Conforme (Jour &le; 10h &bull; Sem &le; 46h)</span>'
+              : '<span class="px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-700/60 font-bold">' + alerts.length + ' point(s) d'attention</span>') +
+          '</div>' +
+          (alerts.length > 0
+            ? '<div class="space-y-1 text-[10px] text-amber-200 bg-amber-950/40 border border-amber-700/50 rounded-xl p-2">' +
+                alerts.map(a => '<div>&bull; ' + escapeHtml(a) + '</div>').join("") +
+              '</div>'
+            : '');
+      }
+
+      const monthBox = document.getElementById("monthly-calc-summary");
+      if (monthBox) {
+        monthBox.innerHTML =
+          '<div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center font-mono text-xs">' +
+            '<div class="bg-slate-950 border border-slate-800 rounded-xl p-2">' +
+              '<div class="text-[9px] text-slate-400 uppercase">1. Nuit Mois</div>' +
+              '<div class="text-sm font-bold text-indigo-300">' + formatMinutesToHHMM(monthly.monthNightMin) + '</div>' +
+            '</div>' +
+            '<div class="bg-slate-950 border border-slate-800 rounded-xl p-2">' +
+              '<div class="text-[9px] text-slate-400 uppercase">2. Sam / Dim Mois</div>' +
+              '<div class="text-sm font-bold text-sky-300">' + formatMinutesToHHMM(monthly.monthWeekendMin) + '</div>' +
+              '<div class="text-[9px] text-slate-400">Sam ' + formatMinutesToHHMM(monthly.monthSatMin) + ' | Dim ' + formatMinutesToHHMM(monthly.monthSunMin) + '</div>' +
+            '</div>' +
+            '<div class="bg-slate-950 border border-slate-800 rounded-xl p-2">' +
+              '<div class="text-[9px] text-slate-400 uppercase">3. D&eacute;couchers (Retours)</div>' +
+              '<div class="text-sm font-bold text-emerald-300">' + monthly.monthDecouchersCount + ' nuit&eacute;e(s)</div>' +
+            '</div>' +
+            '<div class="bg-slate-950 border border-slate-800 rounded-xl p-2">' +
+              '<div class="text-[9px] text-slate-400 uppercase">4. Heures Sup. Mois</div>' +
+              '<div class="text-sm font-bold text-rose-400">' + formatMinutesToHHMM(monthly.totalRetainedOvertimeMin) + '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-[11px] font-mono space-y-1 text-slate-300">' +
+            '<div class="flex justify-between"><span>Prestations comptabilis&eacute;es sur le mois :</span><strong class="text-white">' + monthly.prestationsCount + ' prestation(s) (' + formatMinutesToHHMM(monthly.monthWorkMin) + ')</strong></div>' +
+            '<div class="flex justify-between"><span>D&eacute;tail HS (&gt;10h/j | &gt;46h/sem | &gt;38h moy.) :</span><span class="text-amber-300">' + formatMinutesToHHMM(monthly.monthDailyOvertimeMin) + ' | ' + formatMinutesToHHMM(monthly.monthWeeklyOvertimeMin) + ' | ' + formatMinutesToHHMM(monthly.over38AverageTotalMin) + '</span></div>' +
+            '<div class="flex justify-between border-t border-slate-800 pt-1"><span>Total Primes &amp; Indemnit&eacute;s du mois :</span><strong class="text-emerald-400">' + monthly.totalMonthBrut + ' &euro; brut + ' + monthly.totalMonthNet + ' &euro; net</strong></div>' +
+          '</div>';
+      }
+    }
+
+    function buildPrintablePayrollBlock() {
+      const m = evaluatePrestationMetrics(appState);
+      const items = [
+        '<strong>Travail effectif :</strong> ' + formatMinutesToHHMM(m.effectiveWorkMin),
+        '<strong>Nuit (22h-06h) :</strong> ' + formatMinutesToHHMM(m.nightMin),
+        '<strong>Samedi :</strong> ' + formatMinutesToHHMM(m.weekend.saturdayMin),
+        '<strong>Dimanche/F&eacute;ri&eacute; :</strong> ' + formatMinutesToHHMM(m.weekend.sundayMin),
+        '<strong>HS (&gt;10h) :</strong> ' + formatMinutesToHHMM(m.dailyOvertimeMin)
+      ];
+      if (m.petitMatin.eligible) items.push('<strong>Petit Matin :</strong> 50 &euro; brut');
+      if (m.pert.active) items.push('<strong>Flexibilit&eacute; PERT (' + m.pert.totalEcartMin + 'm) :</strong> ' + m.pert.amountBrut + ' &euro; brut');
+      if (m.grandRappelBrut > 0) items.push('<strong>Grand Rappel :</strong> 100 &euro; brut');
+      if (m.decoucher.mode !== "none") {
+        items.push('<strong>D&eacute;coucher :</strong> ' + escapeHtml(m.decoucher.label) +
+          (m.decoucher.countedDecoucher > 0 ? ' (' + m.decoucher.indemnityNet + '&euro; net' + (m.decoucher.indemnityBrut > 0 ? ' + ' + m.decoucher.indemnityBrut + '&euro; brut' : '') + ')' : ''));
+      }
+      return '<div style="border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 6px; padding: 8px 10px; margin-bottom: 14px; font-size: 11px; color: #0f172a;">' +
+        items.join(' &nbsp;&bull;&nbsp; ') +
+      '</div>';
+    }
+
     async function saveDayToHistory(silent) {
+      const cleanDate = formatToDDMMYYYY(appState.serviceDate || "");
+      const cleanNum = (appState.serviceNumber || "").trim().toUpperCase();
       const entry = {
         savedAt: new Date().toLocaleString("fr-BE"),
         state: JSON.parse(JSON.stringify(appState))
       };
+
+      if (cleanDate && cleanNum) {
+        historyEntries = historyEntries.filter(item => {
+          if (!item || !item.state) return false;
+          const d = formatToDDMMYYYY(item.state.serviceDate || "");
+          const n = (item.state.serviceNumber || "").trim().toUpperCase();
+          return !(d === cleanDate && n === cleanNum);
+        });
+      }
+
       historyEntries.unshift(entry);
-      historyEntries = historyEntries.slice(0, 15);
+      // Mémorisation complète dans IndexedDB (limite de 15 levée)
       await dbSet("railsynthese_history_idb", historyEntries);
       renderSavedDaysList();
-      if (!silent) showStatus("Prestation enregistr\u00e9e dans l'historique du t\u00e9l\u00e9phone.");
+      renderPayrollAndMonthlySummary();
+      if (!silent) showStatus("Prestation enregistr\u00e9e dans l'historique (" + historyEntries.length + " prestation(s) m\u00e9moris\u00e9e(s)).");
+    }
+
+    async function deleteHistoryEntry(idx) {
+      if (!historyEntries[idx]) return;
+      if (!confirm("Supprimer cette prestation de l'historique mensuel ?")) return;
+      historyEntries.splice(idx, 1);
+      await dbSet("railsynthese_history_idb", historyEntries);
+      renderSavedDaysList();
+      renderPayrollAndMonthlySummary();
+      showStatus("Archive supprim\u00e9e de l'historique.");
     }
 
     function renderSavedDaysList() {
@@ -3970,15 +4883,18 @@
       }
       historyEntries.forEach((item, idx) => {
         const div = document.createElement("div");
-        div.className = "bg-slate-950 border border-slate-800 rounded-xl p-2.5 flex items-center justify-between text-xs";
+        div.className = "bg-slate-950 border border-slate-800 rounded-xl p-2.5 flex items-center justify-between gap-2 text-xs";
         const nbDocs = (item.state && item.state.otherDocs && item.state.otherDocs.length) || 0;
         const nbTrains = (item.state && item.state.trains && item.state.trains.length) || 0;
         div.innerHTML =
-          '<div>' +
-            '<div class="font-bold text-white">' + escapeHtml(formatToDDMMYYYY(item.state ? item.state.serviceDate : "")) + ' &mdash; ' + escapeHtml((item.state && item.state.serviceNumber) || "Service") + '</div>' +
-            '<div class="text-[10px] text-slate-400">' + escapeHtml((item.state && item.state.driverName) || "") + ' &bull; ' + nbTrains + ' REBU &bull; ' + nbDocs + ' doc(s)</div>' +
+          '<div class="min-w-0">' +
+            '<div class="font-bold text-white truncate">' + escapeHtml(formatToDDMMYYYY(item.state ? item.state.serviceDate : "")) + ' &mdash; ' + escapeHtml((item.state && item.state.serviceNumber) || "Service") + '</div>' +
+            '<div class="text-[10px] text-slate-400 truncate">' + escapeHtml((item.state && item.state.driverName) || "") + ' &bull; ' + nbTrains + ' REBU &bull; ' + nbDocs + ' doc(s)</div>' +
           '</div>' +
-          '<button onclick="loadHistoryEntry(' + idx + ')" class="px-3 py-1 bg-amber-500 text-slate-950 font-bold rounded-lg">Ouvrir</button>';
+          '<div class="flex items-center gap-1.5 shrink-0">' +
+            '<button onclick="loadHistoryEntry(' + idx + ')" class="px-3 py-1 bg-amber-500 text-slate-950 font-bold rounded-lg">Ouvrir</button>' +
+            '<button onclick="deleteHistoryEntry(' + idx + ')" class="px-2 py-1 bg-rose-950/60 border border-rose-800 text-rose-300 font-bold rounded-lg" title="Supprimer">&times;</button>' +
+          '</div>';
         container.appendChild(div);
       });
     }
