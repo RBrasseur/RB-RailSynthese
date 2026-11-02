@@ -211,16 +211,18 @@
       <button onclick="saveDayToHistory()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center justify-center" title="Enregistrer dans l'historique">
         <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V7l-4-4z"/><path stroke-linecap="round" stroke-linejoin="round" d="M17 21v-8H7v8M7 3v5h8"/></svg>
       </button>
-      <!-- Bouton Cloud (Envoi direct selon le Cloud / Mail choisi dans le menu déroulant) -->
-      <button onclick="triggerConfiguredCloudExport()" class="px-2.5 py-1.5 rounded-xl bg-sky-500 active:bg-sky-400 text-slate-950 font-bold text-xs shadow flex items-center gap-1" title="Envoyer le PDF vers le Cloud ou Mail configuré">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
-        <span>Cloud</span>
-      </button>
-      <!-- Bouton Telecharger PDF -->
-      <button onclick="generateAndDownloadPDF()" class="px-2.5 py-1.5 rounded-xl bg-amber-500 active:bg-amber-400 text-slate-950 font-bold text-xs shadow flex items-center gap-1" title="Télécharger le PDF">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-        <span>PDF</span>
-      </button>
+      <div class="flex flex-col gap-1 shrink-0">
+        <!-- Bouton Cloud (Envoi direct selon le Cloud / Mail choisi dans le menu déroulant) -->
+        <button onclick="triggerConfiguredCloudExport()" class="w-full px-2.5 py-1 rounded-lg bg-sky-500 active:bg-sky-400 text-slate-950 font-bold text-[11px] leading-tight shadow flex items-center justify-center gap-1" title="Envoyer le PDF vers le Cloud ou Mail configuré">
+          <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+          <span>Cloud</span>
+        </button>
+        <!-- Bouton Telecharger PDF (placé sous le bouton Cloud) -->
+        <button onclick="generateAndDownloadPDF()" class="w-full px-2.5 py-1 rounded-lg bg-amber-500 active:bg-amber-400 text-slate-950 font-bold text-[11px] leading-tight shadow flex items-center justify-center gap-1" title="Télécharger le PDF">
+          <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <span>PDF</span>
+        </button>
+      </div>
     </div>
   </header>
 
@@ -233,7 +235,10 @@
   <!-- CONTENU PRINCIPAL -->
   <main class="no-print max-w-xl mx-auto px-3 pt-3 space-y-3">
 
-    <!-- EN-TETE DE LA PRESTATION + BOUTON NOUVELLE PRESTATION + BOUTONS D'AJOUT, COLLAGE & CASES PDF -->
+    <!-- ONGLET 1 : PRESTATION -->
+    <div id="view-service" class="space-y-3">
+
+    <!-- EN-TETE DE LA PRESTATION + BOUTON NOUVELLE PRESTATION + AJOUT PRESTATION -->
     <section class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 shadow space-y-2.5">
       <div class="flex items-center justify-between gap-2">
         <div class="flex items-center gap-2">
@@ -271,63 +276,24 @@
         </div>
       </div>
 
-      <!-- LES 3 COLONNES : AJOUTER + COLLER + CASE A COCHER "JOINDRE DOCUMENT AU PDF" -->
+      <!-- UNIQUEMENT L'AJOUT / COLLAGE DE LA PRESTATION SUR L'ONGLET PRESTATION -->
       <div class="pt-2 border-t border-slate-800 space-y-1.5">
-        <div class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-          Documents &amp; Options d'inclusion dans le PDF final :
-        </div>
-
         <div class="grid grid-cols-3 gap-2">
-          <!-- Colonne 1 : Prestation -->
-          <div class="flex flex-col gap-1.5">
-            <label class="flex flex-col items-center justify-center bg-amber-500/15 active:bg-amber-500/30 border border-amber-500/50 rounded-xl p-2 cursor-pointer text-center transition">
-              <svg class="w-5 h-5 text-amber-400 mb-0.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-              <span class="text-[11px] font-bold text-amber-300 leading-tight">Ajouter prestation</span>
-              <input type="file" accept=".pdf,image/*" class="hidden" onchange="handleServiceUpload(event)" />
-            </label>
-            <button onclick="openPasteModal('service')" class="py-1.5 px-2 rounded-lg bg-slate-950 active:bg-slate-800 border border-amber-500/40 text-[10px] font-bold text-amber-200 flex items-center justify-center gap-1">
-              <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-              <span>Coller</span>
-            </button>
-            <label class="flex items-center justify-center gap-1.5 py-1.5 px-1.5 rounded-lg bg-slate-950 border border-slate-800 cursor-pointer select-none">
-              <input type="checkbox" id="chk-pdf-service" onchange="togglePdfOption('pdfIncludeServiceDoc', this.checked)" class="w-3.5 h-3.5 accent-amber-500 rounded" />
-              <span class="text-[10px] font-semibold text-slate-300 leading-none">Doc au PDF</span>
-            </label>
-          </div>
+          <label class="flex items-center justify-center gap-1.5 bg-amber-500/15 active:bg-amber-500/30 border border-amber-500/50 rounded-xl py-2 px-2 cursor-pointer text-center transition">
+            <svg class="w-4 h-4 text-amber-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <span class="text-[11px] font-bold text-amber-300 leading-tight">Ajouter prestation</span>
+            <input type="file" accept=".pdf,image/*" class="hidden" onchange="handleServiceUpload(event)" />
+          </label>
 
-          <!-- Colonne 2 : REBU -->
-          <div class="flex flex-col gap-1.5">
-            <label class="flex flex-col items-center justify-center bg-indigo-500/15 active:bg-indigo-500/30 border border-indigo-400/50 rounded-xl p-2 cursor-pointer text-center transition">
-              <svg class="w-5 h-5 text-indigo-300 mb-0.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-              <span class="text-[11px] font-bold text-indigo-200 leading-tight">Ajouter REBU</span>
-              <input type="file" accept="image/*,.pdf" class="hidden" onchange="handleNewTrainFileUpload(event)" />
-            </label>
-            <button onclick="openPasteModal('rebu')" class="py-1.5 px-2 rounded-lg bg-slate-950 active:bg-slate-800 border border-indigo-400/40 text-[10px] font-bold text-indigo-200 flex items-center justify-center gap-1">
-              <svg class="w-3.5 h-3.5 text-indigo-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-              <span>Coller</span>
-            </button>
-            <label class="flex items-center justify-center gap-1.5 py-1.5 px-1.5 rounded-lg bg-slate-950 border border-slate-800 cursor-pointer select-none">
-              <input type="checkbox" id="chk-pdf-rebu" onchange="togglePdfOption('pdfIncludeRebuDoc', this.checked)" class="w-3.5 h-3.5 accent-indigo-500 rounded" />
-              <span class="text-[10px] font-semibold text-slate-300 leading-none">Doc au PDF</span>
-            </label>
-          </div>
+          <button onclick="openPasteModal('service')" class="py-2 px-2 rounded-xl bg-slate-950 active:bg-slate-800 border border-amber-500/40 text-[11px] font-bold text-amber-200 flex items-center justify-center gap-1.5">
+            <svg class="w-4 h-4 text-amber-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            <span>Coller prestation</span>
+          </button>
 
-          <!-- Colonne 3 : Autres documents -->
-          <div class="flex flex-col gap-1.5">
-            <label class="flex flex-col items-center justify-center bg-emerald-500/15 active:bg-emerald-500/30 border border-emerald-400/50 rounded-xl p-2 cursor-pointer text-center transition">
-              <svg class="w-5 h-5 text-emerald-300 mb-0.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
-              <span class="text-[11px] font-bold text-emerald-200 leading-tight">Autres documents</span>
-              <input type="file" accept="image/*,.pdf" multiple class="hidden" onchange="handleOtherDocsUpload(event)" />
-            </label>
-            <button onclick="openPasteModal('docs')" class="py-1.5 px-2 rounded-lg bg-slate-950 active:bg-slate-800 border border-emerald-400/40 text-[10px] font-bold text-emerald-200 flex items-center justify-center gap-1">
-              <svg class="w-3.5 h-3.5 text-emerald-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-              <span>Coller</span>
-            </button>
-            <label class="flex items-center justify-center gap-1.5 py-1.5 px-1.5 rounded-lg bg-slate-950 border border-slate-800 cursor-pointer select-none">
-              <input type="checkbox" id="chk-pdf-other" onchange="togglePdfOption('pdfIncludeOtherDocs', this.checked)" class="w-3.5 h-3.5 accent-emerald-500 rounded" />
-              <span class="text-[10px] font-semibold text-slate-300 leading-none">Doc au PDF</span>
-            </label>
-          </div>
+          <label class="flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer select-none">
+            <input type="checkbox" id="chk-pdf-service" onchange="togglePdfOption('pdfIncludeServiceDoc', this.checked)" class="w-3.5 h-3.5 accent-amber-500 rounded shrink-0" />
+            <span class="text-[10px] font-semibold text-slate-300 leading-none">Doc au PDF</span>
+          </label>
         </div>
       </div>
 
@@ -490,9 +456,6 @@
       <div id="duration-warning" class="hidden bg-rose-950/80 border border-rose-700 rounded-xl p-2 text-[11px] text-rose-200"></div>
     </section>
 
-    <!-- ONGLET 1 : PRESTATION -->
-    <div id="view-service" class="space-y-3">
-
       <div class="bg-slate-900 border border-slate-800 rounded-2xl px-3.5 py-2.5 space-y-2">
         <div class="flex flex-wrap items-center justify-between gap-2">
           <div>
@@ -570,7 +533,7 @@
         <div class="flex items-center justify-between">
           <div>
             <h2 class="text-sm font-bold text-white">Bulletins de Freinage (REBU)</h2>
-            <p class="text-[11px] text-slate-400">Cochez &laquo; Doc au PDF &raquo; sous Ajouter REBU si vous souhaitez joindre l'original</p>
+            <p class="text-[11px] text-slate-400">Ajoutez ou collez vos REBU ici</p>
           </div>
           <button onclick="loadSampleTrain47800()" class="text-[11px] text-amber-400 underline font-medium">Exemple 47800</button>
         </div>
@@ -578,7 +541,7 @@
         <div class="grid grid-cols-3 gap-2">
           <label class="flex flex-col items-center justify-center border border-dashed border-indigo-400/70 bg-indigo-950/30 active:bg-indigo-900/40 rounded-xl p-2.5 cursor-pointer text-center">
             <svg class="w-5 h-5 text-indigo-300 mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-            <span class="text-[11px] font-bold text-indigo-300">Fichier / Photo</span>
+            <span class="text-[11px] font-bold text-indigo-300">Ajouter REBU</span>
             <input type="file" accept="image/*,.pdf" class="hidden" onchange="handleNewTrainFileUpload(event)" />
           </label>
 
@@ -592,6 +555,11 @@
             <span class="text-[11px] font-bold text-amber-400">+ REBU Vierge</span>
           </button>
         </div>
+
+        <label class="flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer select-none">
+          <input type="checkbox" id="chk-pdf-rebu" onchange="togglePdfOption('pdfIncludeRebuDoc', this.checked)" class="w-3.5 h-3.5 accent-indigo-500 rounded shrink-0" />
+          <span class="text-[11px] font-semibold text-slate-300 leading-none">Joindre le document REBU original au PDF final (Doc au PDF)</span>
+        </label>
       </div>
 
       <div id="trains-list" class="space-y-5"></div>
@@ -602,7 +570,7 @@
       <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
         <div>
           <h2 class="text-sm font-bold text-white">Autres documents (<span id="other-docs-total">0</span>)</h2>
-          <p class="text-[11px] text-slate-400">Ajoutez ou collez ici vos photos ou PDF utiles (Ordres &eacute;crits, E285, fiches annexes...). Cochez &laquo; Doc au PDF &raquo; sous Autres documents pour les inclure dans le PDF final.</p>
+          <p class="text-[11px] text-slate-400">Ajoutez ou collez ici vos photos ou PDF utiles (Ordres &eacute;crits, E285, fiches annexes...).</p>
         </div>
 
         <div class="grid grid-cols-2 gap-2.5">
@@ -617,6 +585,11 @@
             <span class="text-xs font-bold text-emerald-200">Coller Document</span>
           </button>
         </div>
+
+        <label class="flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer select-none">
+          <input type="checkbox" id="chk-pdf-other" onchange="togglePdfOption('pdfIncludeOtherDocs', this.checked)" class="w-3.5 h-3.5 accent-emerald-500 rounded shrink-0" />
+          <span class="text-[11px] font-semibold text-slate-300 leading-none">Inclure ces documents dans le PDF final (Doc au PDF)</span>
+        </label>
       </div>
 
       <div id="other-docs-list" class="space-y-4"></div>
@@ -645,7 +618,7 @@
             </div>
             <div class="col-span-5">
               <label class="block text-[10px] text-slate-400 mb-0.5">Abr&eacute;viation (Code)</label>
-              <input type="text" id="custom-station-code" placeholder="Ex: TERG" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-xs font-mono uppercase font-bold text-amber-300 focus:border-amber-500 focus:outline-none" />
+              <input type="text" id="custom-station-code" placeholder="Ex: TGR" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-xs font-mono uppercase font-bold text-amber-300 focus:border-amber-500 focus:outline-none" />
             </div>
           </div>
           <button id="station-save-btn" onclick="saveCustomStation()" class="w-full py-2 bg-amber-500 active:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs shadow">+ Enregistrer la gare</button>
@@ -865,19 +838,30 @@
       deferredPwaPrompt = null;
     }
 
-    // GESTION DU QR CODE POUR PARTAGER AUX COLLEGUES
+    // GESTION DU QR CODE POUR PARTAGER AUX COLLEGUES (OUVERTURE 100% VIERGE GARANTIE)
     function getShareableAppUrl() {
       const saved = localStorage.getItem("railsynthese_share_url");
-      if (saved && saved.trim() !== "") return saved.trim();
-      if (location.protocol.startsWith("http")) return (location.origin + location.pathname);
-      return "https://votre-pseudo.github.io/rb-railsynthese/";
+      let base = "";
+      if (saved && saved.trim() !== "") {
+        base = saved.trim();
+      } else if (location.protocol.startsWith("http")) {
+        base = location.origin + location.pathname;
+      } else {
+        base = "https://votre-pseudo.github.io/rb-railsynthese/";
+      }
+      return base.replace(/\?.*$/, "");
+    }
+
+    function buildVirginShareUrl(rawUrl) {
+      const cleanBase = String(rawUrl || getShareableAppUrl()).trim().replace(/\?.*$/, "");
+      return cleanBase + "?vierge=1";
     }
 
     function renderQrCode(urlToEncode) {
       const container = document.getElementById("qr-code-canvas");
       if (!container) return;
       container.innerHTML = "";
-      const cleanUrl = (urlToEncode || getShareableAppUrl()).trim();
+      const cleanUrl = buildVirginShareUrl(urlToEncode || getShareableAppUrl());
       if (window.QRCode) {
         new QRCode(container, {
           text: cleanUrl,
@@ -909,23 +893,23 @@
     }
 
     function updateQrUrl(val) {
-      const clean = String(val || "").trim();
+      const clean = String(val || "").trim().replace(/\?.*$/, "");
       localStorage.setItem("railsynthese_share_url", clean);
       if (clean) renderQrCode(clean);
     }
 
     async function copyShareUrl() {
-      const val = document.getElementById("qr-url-input").value.trim();
+      const val = buildVirginShareUrl(document.getElementById("qr-url-input").value.trim());
       try {
         await navigator.clipboard.writeText(val);
-        showStatus("Lien copi\u00e9 dans le presse-papiers !");
+        showStatus("Lien d\u2019installation vierge copi\u00e9 dans le presse-papiers !");
       } catch (e) {
         showStatus("Lien : " + val);
       }
     }
 
     async function shareAppNative() {
-      const val = document.getElementById("qr-url-input").value.trim();
+      const val = buildVirginShareUrl(document.getElementById("qr-url-input").value.trim());
       if (navigator.share) {
         try {
           await navigator.share({
@@ -958,7 +942,7 @@
       "FQR":"Quaregnon","FQN":"Quenast","LQV":"Qu\u00e9vy","FQ":"Qui\u00e9vrain",
       "RER":"Raeren","FXR":"Rebaix","GRM":"Remersdael","FMU":"Remicourt","FRN":"Renaix","MRN":"Rhisnes","FGO":"Rhode-Saint-Gen\u00e8se","MRV":"Rivage","MRX":"Rixensart","RGR":"Rogier","FEO":"Ronet","FEOF":"Ronet-Formation","FEO P":"Ronet Parking","FRL":"Roulers","FRX":"Roux","LUN":"Ruien","FRB":"Ruisbroek","FRBS":"Ruisbroek-Sauvegarde",
       "MD":"Saint-Denis-Bovesse","FSA":"Saintes","FGH":"Saint-Ghislain","GSO":"Saint-Job","FSN":"Saint-Nicolas","FSNS":"Saint-Nicolas-Est","FST":"Saint-Trond","MBF":"Saint-Vincent-Bellefontaine","FAZ":"Salzinnes","SB":"Sart-Bernard","FSR":"Schaerbeek","FSRN":"Schaerbeek-Formation","GSJ":"Schaerbeek-Josaphat","FSK":"Scheldewindeke","FC":"Schelle","FCB":"Schellebelle","FED":"Schendelbeke","FAD":"Schoonaarde","GSU":"Schulen","NS":"Sclaigneaux","NSN":"Sclessin","NSR":"Seraing","NSK":"Serskamp","FIL":"Silly","SIM":"Simonis","LSW":"Sinaai","FNZ":"Sint-Denijs-Boekel","FSI":"Sint-Gillis","GSW":"Sint-Joris-Weert","FWA":"Sint-Katelijne-Waver","GSK":"Sint-Katherina-Lombeek","GSM":"Sint-Mariaburg","FSMB":"Sint-Martens-Bodegem","LSD":"Sleidinge","FSG":"Soignies","NSS":"Solre-sur-Sambre","SOM":"Somain","FSS":"Spa","FSSG":"Spa-G\u00e9ronst\u00e8re","LHY":"Statte","FSBG":"Steenbrugge","MS":"Sterpenich","MKM":"Stockem","MKMF":"Stockem-Formation","MSO":"Stoumont","SY":"Sy",
-      "FTM":"Tamines","FTS":"Tamise","MTH":"Terhagen","TERG":"Tergnier","FDR":"Termonde","FTN":"Ternat","LTT":"Tertre","LTD":"Tessenderlo","GTT":"Testelt","FTX":"Theux","LU":"Thieu","LTI":"Thimister-Clermont","NTH":"Thuin","FTU":"Thulin","FIT":"Tielen","FTT":"Tielt","MTF":"Tilff","NTL":"Tilleur","GTI":"Tilly","GTIG":"Tilly-Garage","FTNN":"Tirlemont","LOK":"Tollembeek","FTG":"Tongres","FRT":"Torhout","GTX":"Tour et Taxis","FTY":"Tournai","RTS":"Tourpes","FNO":"Trois-Ponts","FDO":"Tronchiennes","FRZ":"Trooz","FTZ":"Tubize","FTR":"Turnhout",
+      "FTM":"Tamines","FTS":"Tamise","MTH":"Terhagen","TGR":"Tergnier","FDR":"Termonde","FTN":"Ternat","LTT":"Tertre","LTD":"Tessenderlo","GTT":"Testelt","FTX":"Theux","LU":"Thieu","LTI":"Thimister-Clermont","NTH":"Thuin","FTU":"Thulin","FIT":"Tielen","FTT":"Tielt","MTF":"Tilff","NTL":"Tilleur","GTI":"Tilly","GTIG":"Tilly-Garage","FTNN":"Tirlemont","LOK":"Tollembeek","FTG":"Tongres","FRT":"Torhout","GTX":"Tour et Taxis","FTY":"Tournai","RTS":"Tourpes","FNO":"Trois-Ponts","FDO":"Tronchiennes","FRZ":"Trooz","FTZ":"Tubize","FTR":"Turnhout",
       "FTE":"Uccle-Calevoet","FUS":"Uccle-Stalle","FEM":"Veltem","FVK":"Vertrijk","GV":"Verviers-Central","FVST":"Verviers-Est","GVO":"Verviers-Palais","FKV":"Viane-Moerbeke","FVE":"Vichte","FVI":"Vielsalm","FVH":"Vijfhuizen","FPM":"Ville-Pommer\u0153ul","LLE":"Villers-la-Ville","FVV":"Vilvoorde","MSM":"Virton","FVS":"Vis\u00e9","GDI":"Vivier d'Oie","FVIV":"Viville","MVO":"Von\u00eache","GVX":"Voroux",
       "LWT":"Waarschoot","LWC":"Walcourt","FWD":"Wandre","FVG":"Waregem","FVR":"Waremme","FWT":"Waterloo","FW":"Watermael","GWV":"Wavre","FWE":"Weerde","GWK":"Welkenraedt","LWE":"Welle","LWK":"Wervik","FVP":"Wespelaar-Tildonk","FWR":"Westrozebeke","FVT":"Wetteren","FWM":"Wevelgem","LWZ":"Wezemaal","FNW":"Wichelen","FWG":"Wijgmaal","GWD":"Wildert","FWB":"Willebroek","WPY":"Woippy","LWO":"Wolfstee","FWO":"Wondelgem",
       "FI":"Ypres","FYG":"Yves-Gomez\u00e9e","NV":"Yvoir","FZB":"Zandbergen","FZA":"Zaventem","LZM":"Zedelgem","LZE":"Zeebrugge","BPEL":"Zeebrugge-Bundel Pelikaan","ZWA":"Zeebrugge-Bundel Zwankendamme","LZED":"Zeebrugge-Dorp","LZS":"Zeebrugge-Strand","LZR":"Zeebrugge-Vorming","FZ":"Zele","FZI":"Zellik","FZZ":"Zelzate","GZC":"Zichem","FZG":"Zingem","MZD":"Zolder","LZH":"Zonhoven","FZT":"Zottegem","FZD":"Zwankendamme","LZD":"Zwijndrecht"
@@ -1144,13 +1128,25 @@
 
     window.addEventListener("DOMContentLoaded", async () => {
       try {
-        const lastDriver = localStorage.getItem("railsynthese_last_driver_name");
+        const urlParams = new URLSearchParams(window.location.search);
+        const isVirginShare = urlParams.has("vierge") || urlParams.has("new") || urlParams.has("share");
+
+        if (isVirginShare) {
+          // Ouverture via le QR Code partagé : réinitialise la session active à 100% vierge (aucun nom, prestation, REBU ni document)
+          localStorage.removeItem("railsynthese_last_driver_name");
+          await dbSet("railsynthese_current_state_idb", null);
+          if (window.history && window.history.replaceState) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
+        }
+
+        const lastDriver = isVirginShare ? "" : localStorage.getItem("railsynthese_last_driver_name");
         const savedHistory = await dbGet("railsynthese_history_idb");
         if (Array.isArray(savedHistory)) {
           historyEntries = savedHistory;
         }
 
-        const savedState = await dbGet("railsynthese_current_state_idb");
+        const savedState = isVirginShare ? null : await dbGet("railsynthese_current_state_idb");
         if (savedState && typeof savedState === "object") {
           const mergedOpTypes = Array.isArray(savedState.opTypes) && savedState.opTypes.length > 0
             ? savedState.opTypes
@@ -1159,6 +1155,16 @@
             savedState.activities.forEach(a => {
               if (a.type && !mergedOpTypes.includes(a.type)) mergedOpTypes.push(a.type);
             });
+          }
+
+          const loadedStations = (savedState.stations && Object.keys(savedState.stations).length > 0)
+            ? { ...savedState.stations }
+            : { ...BASE_STATIONS };
+          if (loadedStations["TERG"] === "Tergnier") {
+            delete loadedStations["TERG"];
+          }
+          if (!loadedStations["TGR"]) {
+            loadedStations["TGR"] = "Tergnier";
           }
 
           appState = {
@@ -1179,12 +1185,11 @@
                   .filter(tr => !(tr.case3_trainNo === "47800" && String(tr.a1_case15_locos || "").includes("compl") && !tr.documentImageDataUrl))
               : [],
             otherDocs: Array.isArray(savedState.otherDocs) ? savedState.otherDocs : [],
-            stations: savedState.stations && Object.keys(savedState.stations).length > 0
-              ? savedState.stations
-              : { ...BASE_STATIONS }
+            stations: loadedStations
           };
         } else {
           appState.driverName = lastDriver || "";
+          appState.stations = { ...BASE_STATIONS };
         }
 
         initCloudAndAISettingsUI();
@@ -1492,6 +1497,10 @@
     }
 
     function togglePrestationCalcOptions(forceOpen) {
+      const serviceView = document.getElementById("view-service");
+      if (forceOpen === true && serviceView && serviceView.classList.contains("hidden")) {
+        switchMobileTab("service");
+      }
       const drawer = document.getElementById("prestation-calc-options-drawer");
       const chevron = document.getElementById("options-toggle-chevron");
       if (!drawer) return;
@@ -1651,7 +1660,8 @@
       "MUIZEN GOEDEREN": "FIZG",
       "MUIZEN PARKING": "FIZ P",
       "MONCEAU PARKING": "LNC P",
-      "SCHAERBEEK FORMATION": "FSRN"
+      "SCHAERBEEK FORMATION": "FSRN",
+      "TERGNIER": "TGR"
     };
 
     function normalizeServicePdfText(text) {
