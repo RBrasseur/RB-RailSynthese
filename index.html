@@ -4808,6 +4808,42 @@
       };
     }
 
+    // Règles des pauses (PAUZE) selon national / international
+    function calculateTotalPauseMinutes(stateObj) {
+      const st = stateObj || appState;
+      const acts = Array.isArray(st.activities) ? st.activities : [];
+      let totalPauseMin = 0;
+      acts.forEach(a => {
+        if (/^PAUZE$/i.test(String(a.type || "").trim())) {
+          const s = parseHHMMToMinutes(a.startTime);
+          const e = parseHHMMToMinutes(a.endTime);
+          if (s !== null && e !== null) {
+            totalPauseMin += spanMinutesBetween(s, e);
+          }
+        }
+      });
+      return totalPauseMin;
+    }
+
+    function isInternationalService(stateObj) {
+      const st = stateObj || appState;
+      const trains = Array.isArray(st.trains) ? st.trains : [];
+      const acts = Array.isArray(st.activities) ? st.activities : [];
+      
+      const hasForeignTrain = trains.some(tr => {
+        return ['case1_LU', 'case1_FR', 'case1_CH', 'case1_DE', 'case1_NL'].some(c => {
+          return (tr[c] || "").trim() !== "";
+        });
+      });
+
+      const hasForeignStation = acts.some(a => {
+        const loc = String(a.location || "").toUpperCase();
+        return /(WPY|CFH|TGR|TERG)/.test(loc) || /FRANCE|ALLEMAGNE|LUXEMBOURG|PAYS-BAS|SUISSE|ROOSENDAAL|AIX-LA-CHAPELLE|MAUBEUGE|JEUMONT|AULNOYE|GIVET|BALE|BASLE|VENDIN/i.test(loc);
+      });
+
+      return hasForeignTrain || hasForeignStation;
+    }
+
     function evaluatePrestationMetrics(stateObj) {
       const st = stateObj || appState;
       const bounds = getPrestationTimeBounds(st);
@@ -4835,6 +4871,11 @@
       const totalBrut = petitMatinBrut + pertRegimeA.amountBrut + realtimeRegimeBBrut + grandRappelBrut + decoucher.indemnityBrut;
       const totalNet = decoucher.indemnityNet;
 
+      const isInternational = isInternationalService(st);
+      const requiredPauseMin = isInternational ? 45 : 30;
+      const totalPauseMin = calculateTotalPauseMinutes(st);
+      const pauseCompliant = totalPauseMin >= requiredPauseMin;
+
       return {
         serviceDate: formatToDDMMYYYY(st.serviceDate || ""),
         serviceNumber: st.serviceNumber || "",
@@ -4848,6 +4889,12 @@
         realtimeRegimeB: { overrunMin: bounds.realtimeOverrunMin, amountBrut: realtimeRegimeBBrut },
         grandRappelBrut,
         decoucher,
+        pause: {
+          totalPauseMin,
+          requiredPauseMin,
+          isInternational,
+          pauseCompliant
+        },
         totalBrut,
         totalNet
       };
@@ -5156,6 +5203,7 @@
             '</div>' +
           '</div>' +
           '<div class="flex flex-wrap gap-1.5 text-[10px] font-mono pt-1">' +
+            '<span class="px-2 py-0.5 rounded bg-slate-950 border ' + (m.pause.pauseCompliant ? 'border-slate-800 text-slate-300' : 'border-amber-500/50 text-amber-300 font-bold') + '">Pause : ' + formatMinutesToHHMM(m.pause.totalPauseMin) + '/' + m.pause.requiredPauseMin + 'm (' + (m.pause.isInternational ? 'Intl' : 'Nat') + ')</span>' +
             '<span class="px-2 py-0.5 rounded bg-slate-950 border border-emerald-500/40 text-emerald-300">Dur&eacute;e retenue Fiche : <strong>' + formatMinutesToHHMM(m.effectiveWorkMin) + '</strong> (' + escapeHtml(m.bounds.displayStartStr) + '&rarr;' + escapeHtml(m.bounds.displayEndStr) + ')</span>' +
             '<span class="px-2 py-0.5 rounded bg-slate-950 border ' + (m.petitMatin.eligible ? "border-amber-500/50 text-amber-300 font-bold" : "border-slate-800 text-slate-400") + '">4. Petit Matin : ' + m.petitMatin.amountBrut + ' &euro; brut</span>' +
             '<span class="px-2 py-0.5 rounded bg-slate-950 border ' + (m.pert.amountBrut > 0 ? "border-amber-500/50 text-amber-300 font-bold" : "border-slate-800 text-slate-400") + '">5A. PERT (' + m.pert.totalEcartMin + 'm) : ' + m.pert.amountBrut + ' &euro;</span>' +
@@ -5188,6 +5236,9 @@
         }
         if (!m.decoucher.restCompliant) {
           alerts.push("Attention : Temps de repos hôtel inférieur au seuil (> 9h00 / > 24h00 si long).");
+        }
+        if (!m.pause.pauseCompliant) {
+          alerts.push("Pause insuffisante (" + formatMinutesToHHMM(m.pause.totalPauseMin) + " / " + m.pause.requiredPauseMin + " min requises pour service " + (m.pause.isInternational ? "international" : "national") + ").");
         }
 
         compBox.innerHTML =
