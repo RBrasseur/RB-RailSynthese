@@ -1,5 +1,5 @@
-// RB RailSynthese Service Worker v17
-const CACHE_NAME = 'rb-railsynthese-pwa-v17';
+// RB RailSynthese + RailVigie Unified Service Worker
+const CACHE_NAME = 'rb-railsynthese-vigie-unified-v1';
 const ASSETS = [
   './',
   './index.html',
@@ -26,7 +26,7 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
   e.respondWith(
-    fetch(e.request)
+    fetch(e.request, { cache: 'no-store' })
       .then((res) => {
         const copy = res.clone();
         caches.open(CACHE_NAME).then((cache) => cache.put(e.request, copy)).catch(() => {});
