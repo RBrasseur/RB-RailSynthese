@@ -1,5 +1,5 @@
-// RB RailSynthese Service Worker v16
-const CACHE_NAME = 'rb-railsynthese-pwa-v16';
+// RB RailSynthese Service Worker v17
+const CACHE_NAME = 'rb-railsynthese-pwa-v17';
 const ASSETS = [
   './',
   './index.html',

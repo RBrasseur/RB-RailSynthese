@@ -4507,54 +4507,112 @@
       return nightMin;
     }
 
-    // 2. HEURES DE WEEK-END (Règle du jour de commencement) :
-    // - Prestation commencée le vendredi et terminée le samedi = 100 % tarif semaine (0h samedi).
-    // - Prestation commencée le samedi et terminée le dimanche = 100 % tarif samedi.
-    // - Prestation commencée le dimanche (ou jour férié) et terminée le lundi = 100 % tarif dimanche.
-    function calculateWeekendMinutes(serviceDateStr, effectiveWorkMin, isHolidayFlag) {
-      const workMin = Math.max(0, Math.round(Number(effectiveWorkMin) || 0));
-      if (workMin === 0) {
-        return { totalWeekendMin: 0, saturdayMin: 0, sundayMin: 0, rateLabel: "100% Semaine" };
+    function formatDateObjToDDMMYYYY(d) {
+      if (!d || isNaN(d.getTime())) return "";
+      const dd = String(d.getDate()).padStart(2, "0");
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const yyyy = d.getFullYear();
+      return dd + "/" + mm + "/" + yyyy;
+    }
+
+    function getDayRateCategory(dateObj, manualHolidayFlag) {
+      const dateStr = formatDateObjToDDMMYYYY(dateObj);
+      const isHol = Boolean(manualHolidayFlag) || (dateStr ? isBelgianPublicHoliday(dateStr) : false);
+      if (isHol) return { category: "sunday", isHoliday: true };
+      if (!dateObj || isNaN(dateObj.getTime())) return { category: "weekday", isHoliday: false };
+      const dow = dateObj.getDay(); // 0 = Dimanche, 6 = Samedi
+      if (dow === 0) return { category: "sunday", isHoliday: false };
+      if (dow === 6) return { category: "saturday", isHoliday: false };
+      return { category: "weekday", isHoliday: false };
+    }
+
+    // 2. HEURES DE WEEK-END ET JOURS FERIES (Découpage strict à minuit 00:00) :
+    // Seules les heures réellement prestées le samedi, le dimanche ou un jour férié (entre 00:00 et 24:00)
+    // sont comptabilisées, indépendamment du jour où la prestation a commencé.
+    function calculateWeekendMinutes(serviceDateStr, bounds, decoucher, isHolidayFlag, secondPrestationStartStr) {
+      const mainWorkMin = Math.max(0, Math.round((bounds ? bounds.effectiveBaseWorkMin : 0) + (decoucher ? decoucher.addedWorkMin : 0)));
+      const secWorkMin = Math.max(0, Math.round(decoucher ? decoucher.secondPrestationWorkMin : 0));
+      const totalWorkMin = mainWorkMin + secWorkMin;
+
+      if (totalWorkMin === 0) {
+        return { totalWeekendMin: 0, saturdayMin: 0, sundayMin: 0, holidayMin: 0, rateLabel: "Semaine (00:00)" };
       }
+
       const d0 = parseDDMMYYYYToDate(serviceDateStr);
-      const isHol = Boolean(isHolidayFlag) || isBelgianPublicHoliday(serviceDateStr);
-
-      if (isHol) {
-        return {
-          totalWeekendMin: workMin,
-          saturdayMin: 0,
-          sundayMin: workMin,
-          rateLabel: "Jour férié (100% Dimanche)"
-        };
+      if (!d0 && !isHolidayFlag) {
+        return { totalWeekendMin: 0, saturdayMin: 0, sundayMin: 0, holidayMin: 0, rateLabel: "Date non définie" };
       }
 
-      if (!d0) {
-        return { totalWeekendMin: 0, saturdayMin: 0, sundayMin: 0, rateLabel: "Date non définie" };
+      const d1 = d0 ? new Date(d0.getFullYear(), d0.getMonth(), d0.getDate() + 1, 12, 0, 0) : null;
+      const cat0 = getDayRateCategory(d0, isHolidayFlag);
+      const cat1 = getDayRateCategory(d1, false);
+
+      let saturdayMin = 0;
+      let sundayMin = 0;
+      let holidayMin = 0;
+
+      const accumulateInterval = (startCont, endCont) => {
+        if (startCont === null || endCont === null || endCont <= startCont) return;
+        // Heures prestées sur le Jour J [00:00 - 24:00]
+        const m0 = Math.max(0, Math.min(endCont, 1440) - Math.max(startCont, 0));
+        if (m0 > 0) {
+          if (cat0.category === "saturday") {
+            saturdayMin += m0;
+          } else if (cat0.category === "sunday") {
+            sundayMin += m0;
+            if (cat0.isHoliday) holidayMin += m0;
+          }
+        }
+        // Heures prestées sur le Jour J+1 après minuit [24:00 - 48:00]
+        const m1 = Math.max(0, Math.min(endCont, 2880) - Math.max(startCont, 1440));
+        if (m1 > 0) {
+          if (cat1.category === "saturday") {
+            saturdayMin += m1;
+          } else if (cat1.category === "sunday") {
+            sundayMin += m1;
+            if (cat1.isHoliday) holidayMin += m1;
+          }
+        }
+      };
+
+      if (mainWorkMin > 0) {
+        const start1 = (bounds && bounds.realStartMin !== null && bounds.realStartMin !== undefined) ? bounds.realStartMin : 0;
+        accumulateInterval(start1, start1 + mainWorkMin);
       }
 
-      const dow0 = d0.getDay(); // 0 = Dimanche, 5 = Vendredi, 6 = Samedi
-      if (dow0 === 0) {
-        return {
-          totalWeekendMin: workMin,
-          saturdayMin: 0,
-          sundayMin: workMin,
-          rateLabel: "100% Tarif Dimanche"
-        };
+      if (secWorkMin > 0) {
+        const p2Start = parseHHMMToMinutes(secondPrestationStartStr);
+        if (p2Start !== null) {
+          const baseStart = (bounds && bounds.realStartMin !== null && bounds.realStartMin !== undefined) ? bounds.realStartMin : 0;
+          const p2StartCont = (p2Start < baseStart) ? (p2Start + 1440) : p2Start;
+          accumulateInterval(p2StartCont, p2StartCont + secWorkMin);
+        } else {
+          accumulateInterval(0, secWorkMin);
+        }
       }
-      if (dow0 === 6) {
-        return {
-          totalWeekendMin: workMin,
-          saturdayMin: workMin,
-          sundayMin: 0,
-          rateLabel: "100% Tarif Samedi"
-        };
+
+      const totalWeekendMin = saturdayMin + sundayMin;
+      let rateLabel = "Semaine (00:00)";
+      if (saturdayMin > 0 && sundayMin > 0) {
+        rateLabel = "Sam " + formatMinutesToHHMM(saturdayMin) + " + " + (holidayMin > 0 ? "Dim/JF " : "Dim ") + formatMinutesToHHMM(sundayMin);
+      } else if (saturdayMin > 0) {
+        rateLabel = "Samedi : " + formatMinutesToHHMM(saturdayMin);
+      } else if (sundayMin > 0) {
+        if (holidayMin > 0 && holidayMin === sundayMin) {
+          rateLabel = "Jour férié : " + formatMinutesToHHMM(sundayMin);
+        } else if (holidayMin > 0) {
+          rateLabel = "Dim / Férié : " + formatMinutesToHHMM(sundayMin);
+        } else {
+          rateLabel = "Dimanche : " + formatMinutesToHHMM(sundayMin);
+        }
       }
 
       return {
-        totalWeekendMin: 0,
-        saturdayMin: 0,
-        sundayMin: 0,
-        rateLabel: "100% Tarif Semaine"
+        totalWeekendMin,
+        saturdayMin,
+        sundayMin,
+        holidayMin,
+        rateLabel
       };
     }
 
@@ -4838,7 +4896,7 @@
 
       const hasForeignStation = acts.some(a => {
         const loc = String(a.location || "").toUpperCase();
-        return /(WPY|CFH|TGR|TERG)/.test(loc) || /FRANCE|ALLEMAGNE|LUXEMBOURG|PAYS-BAS|SUISSE|ROOSENDAAL|AIX-LA-CHAPELLE|MAUBEUGE|JEUMONT|AULNOYE|GIVET|BALE|BASLE|VENDIN/i.test(loc);
+        return /\b(WPY|CFH|TGR|TERG)\b/.test(loc) || /FRANCE|ALLEMAGNE|LUXEMBOURG|PAYS-BAS|SUISSE|ROOSENDAAL|AIX-LA-CHAPELLE|MAUBEUGE|JEUMONT|AULNOYE|GIVET|BALE|BASLE|VENDIN/i.test(loc);
       });
 
       return hasForeignTrain || hasForeignStation;
@@ -4853,7 +4911,7 @@
       const rawNight1 = calculateNightMinutes(bounds.realStartMin, bounds.realEndMinContinuous);
       const nightMin = Math.min(effectiveWorkMin, rawNight1 + decoucher.secondPrestationNightMin);
 
-      const weekend = calculateWeekendMinutes(st.serviceDate, effectiveWorkMin, st.isHoliday);
+      const weekend = calculateWeekendMinutes(st.serviceDate, bounds, decoucher, st.isHoliday, st.secondPrestationStart);
       const dailyOvertimeMin = calculateDailyOvertimeMinutes(effectiveWorkMin);
       const petitMatin1 = calculatePetitMatinBonus(bounds.realStartMin);
       const petitMatinBrut = petitMatin1.amountBrut + decoucher.secondPrestationPetitMatinBrut;
@@ -5188,7 +5246,7 @@
               '<div class="text-sm font-bold text-indigo-300">' + formatMinutesToHHMM(m.nightMin) + '</div>' +
             '</div>' +
             '<div class="bg-slate-950 border border-slate-800 rounded-xl p-2">' +
-              '<div class="text-[9px] uppercase text-slate-400">2. Qualification Jour</div>' +
+              '<div class="text-[9px] uppercase text-slate-400">2. Heures WE / F&eacute;ri&eacute;</div>' +
               '<div class="text-sm font-bold text-sky-300">' + formatMinutesToHHMM(m.weekend.totalWeekendMin) + '</div>' +
               '<div class="text-[9px] text-slate-400">' + escapeHtml(m.weekend.rateLabel) + '</div>' +
             '</div>' +
