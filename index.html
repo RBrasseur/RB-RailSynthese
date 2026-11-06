@@ -19,6 +19,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <style>
@@ -499,45 +501,57 @@
     </div>
   </div>
 
-  <!-- BARRE SUPERIEURE MOBILE -->
-  <header class="no-print sticky top-0 z-30 bg-slate-900/95 backdrop-blur border-b border-slate-800 px-3.5 py-2.5 flex items-center justify-between">
-    <div class="flex items-center gap-2.5">
-      <div class="w-10 h-10 rounded-xl bg-amber-500 flex flex-col items-center justify-center text-slate-950 shadow relative select-none shrink-0">
-        <span class="font-black text-sm leading-none -mt-1.5">RS</span>
-        <span class="font-extrabold text-[6.5px] leading-none absolute bottom-1 right-1">by RB</span>
-      </div>
-      <div>
-        <div class="flex items-center gap-1.5">
-          <h1 class="text-sm font-bold text-white leading-tight">RB RailSynth&egrave;se</h1>
-          <span id="autosave-indicator" class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800/60 font-medium">Sauvegard&eacute;</span>
+  <!-- BARRE SUPERIEURE MOBILE UNIFIEE AVEC LES 2 ONGLETS (RAILSYNTHESE | RAILVIGIE) -->
+  <header class="no-print sticky top-0 z-30 bg-slate-900/95 backdrop-blur border-b border-slate-800 px-3.5 py-2 space-y-2">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <img src="data:image/png;base64,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" alt="RS by RB" class="w-10 h-10 rounded-xl shadow select-none shrink-0 object-cover border border-amber-500/40" />
+        <div>
+          <div class="flex items-center gap-1.5">
+            <h1 id="top-app-title" class="text-sm font-bold text-white leading-tight">RB RailSynth&egrave;se</h1>
+            <span id="autosave-indicator" class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800/60 font-medium">Sauvegard&eacute;</span>
+          </div>
+          <p class="text-[11px] text-slate-400"><span id="header-driver-display">Conducteur</span> &bull; Lineas / SIBELIT</p>
         </div>
-        <p class="text-[11px] text-slate-400"><span id="header-driver-display">Conducteur</span> &bull; Lineas / SIBELIT</p>
+      </div>
+
+      <div class="flex items-center gap-1.5">
+        <!-- Bouton QR Code pour partager aux collegues -->
+        <button type="button" onclick="openQrModal()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center justify-center" title="QR Code pour partager l'application">
+          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h6v6H3V3zm12 0h6v6h-6V3zM3 15h6v6H3v-6zm13 0h2v2h-2v-2zm3 3h2v3h-2v-3zm-3 3h2v-2h-2v2zm3-6h2v2h-2v-2z"/>
+          </svg>
+        </button>
+        <!-- Bouton Sauvegarde contextuel (Historique RailSynthèse ou Sauvegarde locale RailVigie) -->
+        <button type="button" onclick="triggerContextualSave()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center justify-center" title="Enregistrer">
+          <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V7l-4-4z"/><path stroke-linecap="round" stroke-linejoin="round" d="M17 21v-8H7v8M7 3v5h8"/></svg>
+        </button>
+        <div class="flex flex-col gap-1 shrink-0">
+          <!-- Bouton Cloud indépendant selon l'onglet actif -->
+          <button type="button" onclick="triggerContextualCloudExport()" class="w-full px-2.5 py-1 rounded-lg bg-sky-500 active:bg-sky-400 text-slate-950 font-bold text-[11px] leading-tight shadow flex items-center justify-center gap-1" title="Envoyer le PDF du module actif vers le Cloud ou Mail">
+            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+            <span id="top-cloud-btn-label">Cloud</span>
+          </button>
+          <!-- Bouton PDF indépendant selon l'onglet actif -->
+          <button type="button" onclick="triggerContextualPDFDownload()" class="w-full px-2.5 py-1 rounded-lg bg-amber-500 active:bg-amber-400 text-slate-950 font-bold text-[11px] leading-tight shadow flex items-center justify-center gap-1" title="Télécharger le PDF du module actif">
+            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <span id="top-pdf-btn-label">PDF</span>
+          </button>
+        </div>
       </div>
     </div>
 
-    <div class="flex items-center gap-1.5">
-      <!-- Bouton QR Code pour partager aux collegues -->
-      <button onclick="openQrModal()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center justify-center" title="QR Code pour partager l'application">
-        <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h6v6H3V3zm12 0h6v6h-6V3zM3 15h6v6H3v-6zm13 0h2v2h-2v-2zm3 3h2v3h-2v-3zm-3 3h2v-2h-2v2zm3-6h2v2h-2v-2z"/>
-        </svg>
+    <!-- BARRE DES 2 ONGLETS EN HAUT DE PAGE : RAILSYNTHESE | RAILVIGIE -->
+    <div class="grid grid-cols-2 gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800">
+      <button type="button" id="top-univ-btn-synthese" onclick="switchAppUniverse('synthese')" class="py-2 px-3 rounded-lg font-extrabold text-xs flex items-center justify-center gap-1.5 bg-amber-500 text-slate-950 shadow transition">
+        <span>🚆 RailSynth&egrave;se</span>
+        <span class="text-[10px] font-bold opacity-80">(Presta &amp; REBU)</span>
       </button>
-      <!-- Bouton Archivage Historique -->
-      <button onclick="saveDayToHistory()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center justify-center" title="Enregistrer dans l'historique">
-        <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V7l-4-4z"/><path stroke-linecap="round" stroke-linejoin="round" d="M17 21v-8H7v8M7 3v5h8"/></svg>
+      <button type="button" id="top-univ-btn-vigie" onclick="switchAppUniverse('vigie')" class="py-2 px-3 rounded-lg font-extrabold text-xs flex items-center justify-center gap-1.5 bg-slate-900 text-slate-300 border border-slate-800 hover:text-white transition relative">
+        <span>🛡️ RailVigie</span>
+        <span class="text-[10px] font-bold opacity-80">(E500 &amp; Repos)</span>
+        <span id="top-vigie-alert-pill" class="hidden ml-1 px-1.5 py-0.2 rounded-full bg-rose-600 text-white text-[9px] font-black animate-pulse">!</span>
       </button>
-      <div class="flex flex-col gap-1 shrink-0">
-        <!-- Bouton Cloud (Envoi direct selon le Cloud / Mail choisi dans le menu déroulant) -->
-        <button onclick="triggerConfiguredCloudExport()" class="w-full px-2.5 py-1 rounded-lg bg-sky-500 active:bg-sky-400 text-slate-950 font-bold text-[11px] leading-tight shadow flex items-center justify-center gap-1" title="Envoyer le PDF vers le Cloud ou Mail configuré">
-          <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
-          <span>Cloud</span>
-        </button>
-        <!-- Bouton Telecharger PDF (placé sous le bouton Cloud) -->
-        <button onclick="generateAndDownloadPDF()" class="w-full px-2.5 py-1 rounded-lg bg-amber-500 active:bg-amber-400 text-slate-950 font-bold text-[11px] leading-tight shadow flex items-center justify-center gap-1" title="Télécharger le PDF">
-          <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-          <span>PDF</span>
-        </button>
-      </div>
     </div>
   </header>
 
@@ -547,8 +561,8 @@
     <button onclick="hideStatus()" class="text-indigo-400 font-bold pl-3">&times;</button>
   </div>
 
-  <!-- CONTENU PRINCIPAL -->
-  <main class="no-print max-w-xl mx-auto px-3 pt-3 space-y-3">
+  <!-- CONTENU PRINCIPAL RAILSYNTHESE -->
+  <main id="app-universe-synthese" class="no-print max-w-xl mx-auto px-3 pt-3 space-y-3">
 
     <!-- ONGLET 1 : PRESTATION -->
     <div id="view-service" class="space-y-3">
@@ -769,6 +783,8 @@
       </div>
 
       <div id="duration-warning" class="hidden bg-rose-950/80 border border-rose-700 rounded-xl p-2 text-[11px] text-rose-200"></div>
+      <!-- ALERTE AUTOMATIQUE RAILVIGIE (INTERVALLES, REPOS <14H / <=12H, DECOUCHER LONG/COURT, RX/OO) -->
+      <div id="vigie-live-alert-banner" class="hidden rounded-xl p-2.5 text-[11px] space-y-1.5 border"></div>
     </section>
 
       <div class="bg-slate-900 border border-slate-800 rounded-2xl px-3.5 py-2.5 space-y-2">
@@ -1086,8 +1102,8 @@
 
   </main>
 
-  <!-- BARRE DE NAVIGATION INFERIEURE (6 ONGLETS ANDROID) -->
-  <nav class="no-print fixed bottom-0 left-0 right-0 z-30 bg-slate-900/95 backdrop-blur border-t border-slate-800 grid grid-cols-6 py-2 px-1">
+  <!-- BARRE DE NAVIGATION INFERIEURE RAILSYNTHESE (6 ONGLETS) -->
+  <nav id="nav-bottom-synthese" class="no-print fixed bottom-0 left-0 right-0 z-30 bg-slate-900/95 backdrop-blur border-t border-slate-800 grid grid-cols-6 py-2 px-1">
     <button onclick="switchMobileTab('service')" id="nav-service" class="flex flex-col items-center gap-1 py-1 text-amber-400">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
       <span class="text-[10px] font-bold">Prestation</span>
@@ -1881,6 +1897,7 @@
         if (isVirginShare) {
           // Ouverture via le QR Code partagé : réinitialise la session active à 100% vierge (aucun nom, prestation, REBU ni document)
           localStorage.removeItem("railsynthese_last_driver_name");
+          localStorage.removeItem("rb_railvigie_state_v6");
           await dbSet("railsynthese_current_state_idb", null);
           if (window.history && window.history.replaceState) {
             window.history.replaceState({}, document.title, window.location.pathname);
@@ -6270,8 +6287,6 @@ const MONTH_FOLDERS = {
 };
 
 // Service worker registered globally
-  });
-}
 
 if (typeof window.pdfjsLib !== 'undefined') {
   window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';

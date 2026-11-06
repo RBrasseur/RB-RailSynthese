@@ -1,5 +1,5 @@
 // RB RailSynthese + RailVigie Unified Service Worker
-const CACHE_NAME = 'rb-railsynthese-vigie-unified-v1';
+const CACHE_NAME = 'rb-railsynthese-vigie-unified-v2';
 const ASSETS = [
   './',
   './index.html',
