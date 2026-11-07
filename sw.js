@@ -1,5 +1,5 @@
 // RB RailSynthese + RailVigie Unified Service Worker (Preserves 100% of IndexedDB & LocalStorage across updates)
-const CACHE_NAME = 'rb-railsynthese-vigie-unified-v5';
+const CACHE_NAME = 'rb-railsynthese-vigie-unified-v6';
 const ASSETS = [
   './',
   './index.html',

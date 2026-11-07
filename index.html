@@ -368,7 +368,7 @@
     }
 
   
-    /* Style unifié des onglets du bas (inspiré de RailVigie) */
+    /* Style unifié des onglets du bas pour RailSynthèse (identique à RailVigie avec icônes colorées) */
     #nav-bottom-synthese {
       position: fixed;
       bottom: 0;
@@ -377,12 +377,12 @@
       z-index: 1000;
       display: grid;
       grid-template-columns: repeat(6, 1fr);
-      gap: 3px;
+      gap: 4px;
       background: rgba(15, 23, 42, 0.98);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
       border-top: 1px solid var(--border);
-      padding: 6px 4px calc(8px + env(safe-area-inset-bottom, 0px)) 4px;
+      padding: 6px 5px calc(8px + env(safe-area-inset-bottom, 0px)) 5px;
       box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.45);
     }
     #nav-bottom-synthese button {
@@ -390,7 +390,7 @@
       background: transparent;
       color: var(--muted);
       border: 1px solid transparent;
-      padding: 5px 2px;
+      padding: 6px 2px;
       border-radius: 8px;
       display: flex;
       flex-direction: column;
@@ -400,9 +400,21 @@
       width: 100%;
       cursor: pointer;
       transition: 0.15s;
+      user-select: none;
+    }
+    #nav-bottom-synthese button:hover {
+      filter: brightness(1.1);
+    }
+    #nav-bottom-synthese button:active {
+      transform: scale(0.98);
+    }
+    #nav-bottom-synthese button .tab-icon {
+      font-size: 1.15rem;
+      line-height: 1;
+      pointer-events: none;
     }
     #nav-bottom-synthese button .tab-label {
-      font-size: 0.65rem;
+      font-size: 0.68rem;
       font-weight: 700;
       white-space: nowrap;
       pointer-events: none;
@@ -412,7 +424,17 @@
       color: var(--accent);
       border-color: rgba(245, 158, 11, 0.45);
     }
-
+    #nav-bottom-synthese .syn-tab-badge {
+      position: absolute;
+      top: 2px;
+      right: 8%;
+      border-radius: 999px;
+      padding: 1px 5px;
+      font-size: 0.62rem;
+      font-weight: 800;
+      line-height: 1.1;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen pb-24">
@@ -587,14 +609,16 @@
       </div>
     </div>
 
-    <!-- BARRE DES 2 ONGLETS EN HAUT DE PAGE : RAILSYNTHESE | RAILVIGIE -->
+    <!-- BARRE DES 2 ONGLETS EN HAUT DE PAGE : RAILSYNTHESE | RAILVIGIE (STYLE RAILVIGIE) -->
     <div class="grid grid-cols-2 gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800">
-      <button type="button" id="top-univ-btn-synthese" onclick="switchAppUniverse('synthese')" class="py-2 px-3 rounded-lg font-extrabold text-xs flex items-center justify-center gap-1.5 bg-amber-500 text-slate-950 shadow transition">
-        <span>🚆 RailSynth&egrave;se</span>
+      <button type="button" id="top-univ-btn-synthese" onclick="switchAppUniverse('synthese')" style="background: rgba(245, 158, 11, 0.18); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.45);" class="py-2 px-3 rounded-lg font-extrabold text-xs flex items-center justify-center gap-1.5 transition">
+        <span class="text-sm leading-none">🚆</span>
+        <span>RailSynth&egrave;se</span>
         <span class="text-[10px] font-bold opacity-80">(Presta &amp; REBU)</span>
       </button>
-      <button type="button" id="top-univ-btn-vigie" onclick="switchAppUniverse('vigie')" class="py-2 px-3 rounded-lg font-extrabold text-xs flex items-center justify-center gap-1.5 bg-slate-900 text-slate-300 border border-slate-800 hover:text-white transition relative">
-        <span>🛡️ RailVigie</span>
+      <button type="button" id="top-univ-btn-vigie" onclick="switchAppUniverse('vigie')" style="background: transparent; color: #94a3b8; border: 1px solid transparent;" class="py-2 px-3 rounded-lg font-extrabold text-xs flex items-center justify-center gap-1.5 hover:text-white transition relative">
+        <span class="text-sm leading-none">🛡️</span>
+        <span>RailVigie</span>
         <span class="text-[10px] font-bold opacity-80">(E500 &amp; Repos)</span>
         <span id="top-vigie-alert-pill" class="hidden ml-1 px-1.5 py-0.2 rounded-full bg-rose-600 text-white text-[9px] font-black animate-pulse">!</span>
       </button>
@@ -1148,37 +1172,33 @@
 
   </main>
 
-  <!-- BARRE DE NAVIGATION INFERIEURE RAILSYNTHESE (6 ONGLETS STYLÉS) -->
+  <!-- BARRE DE NAVIGATION INFERIEURE RAILSYNTHESE (6 ONGLETS COLORÉS COMME RAILVIGIE) -->
   <nav id="nav-bottom-synthese" class="no-print" role="tablist">
-    <button onclick="switchMobileTab('service')" id="nav-service" class="active-vigie-tab">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+    <button type="button" onclick="switchMobileTab('service')" id="nav-service" class="active-vigie-tab">
+      <span class="tab-icon">📋</span>
       <span class="tab-label">Prestation</span>
     </button>
-    <button onclick="switchMobileTab('trains')" id="nav-trains">
-      <div class="relative">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h8m-8 4h8m-4 4v3m-4 3h8a2 2 0 002-2V6a2 2 0 00-2-2H8a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg>
-        <span id="nav-train-count" class="absolute -top-1.5 -right-3 bg-amber-500 text-slate-950 text-[9px] font-black px-1.5 rounded-full">0</span>
-      </div>
+    <button type="button" onclick="switchMobileTab('trains')" id="nav-trains">
+      <span class="tab-icon">🚆</span>
       <span class="tab-label">REBU</span>
+      <span id="nav-train-count" class="syn-tab-badge bg-amber-500 text-slate-950">0</span>
     </button>
-    <button onclick="switchMobileTab('docs')" id="nav-docs">
-      <div class="relative">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
-        <span id="nav-docs-count" class="absolute -top-1.5 -right-3 bg-emerald-500 text-slate-950 text-[9px] font-black px-1.5 rounded-full">0</span>
-      </div>
-      <span class="tab-label">Docs</span>
+    <button type="button" onclick="switchMobileTab('docs')" id="nav-docs">
+      <span class="tab-icon">📎</span>
+      <span class="tab-label">Autres docs</span>
+      <span id="nav-docs-count" class="syn-tab-badge bg-emerald-500 text-slate-950">0</span>
     </button>
-    <button onclick="switchMobileTab('stations')" id="nav-stations">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+    <button type="button" onclick="switchMobileTab('stations')" id="nav-stations">
+      <span class="tab-icon">📍</span>
       <span class="tab-label">Gares</span>
     </button>
-    <button onclick="switchMobileTab('calc')" id="nav-calc">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+    <button type="button" onclick="switchMobileTab('calc')" id="nav-calc">
+      <span class="tab-icon">🧮</span>
       <span class="tab-label">Calculs</span>
     </button>
-    <button onclick="switchMobileTab('settings')" id="nav-settings">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-      <span class="tab-label">IA / R&eacute;gl.</span>
+    <button type="button" onclick="switchMobileTab('settings')" id="nav-settings">
+      <span class="tab-icon">⚙️</span>
+      <span class="tab-label">IA / Sauveg.</span>
     </button>
   </nav>
 
@@ -1508,27 +1528,27 @@
   </div>
 </div>
 
-<!-- Barre d'onglets fixée EN BAS de l'application -->
+<!-- Barre d'onglets fixée EN BAS de l'application (Sans numéro, uniquement le nom) -->
 <nav class="bottom-tabs-nav" role="tablist">
   <button type="button" class="bottom-tab-btn active" id="tabBtn-1" onclick="switchTab(1)">
     <span class="tab-icon">📅</span>
-    <span class="tab-label">1. Période</span>
+    <span class="tab-label">Période</span>
   </button>
   <button type="button" class="bottom-tab-btn" id="tabBtn-2" onclick="switchTab(2)">
     <span class="tab-icon">📊</span>
-    <span class="tab-label">2. Synthèse</span>
+    <span class="tab-label">Synthèse</span>
   </button>
   <button type="button" class="bottom-tab-btn" id="tabBtn-3" onclick="switchTab(3)">
     <span class="tab-icon">🗂️</span>
-    <span class="tab-label">3. Compteurs</span>
+    <span class="tab-label">Compteurs</span>
   </button>
   <button type="button" class="bottom-tab-btn" id="tabBtn-4" onclick="switchTab(4)">
     <span class="tab-icon">🚆</span>
-    <span class="tab-label">4. Planning</span>
+    <span class="tab-label">Planning</span>
   </button>
   <button type="button" class="bottom-tab-btn" id="tabBtn-5" onclick="switchTab(5)">
     <span class="tab-icon">🛡️</span>
-    <span class="tab-label">5. Audit</span>
+    <span class="tab-label">Audit</span>
     <span id="tabBadgeAnom" class="tab-badge" style="display:none;">0</span>
   </button>
 </nav>
@@ -7525,7 +7545,7 @@ function recalculateAll() {
   if (errCount > 0) {
     kpiAnomEl.textContent = errCount + ' Anomalie(s)';
     kpiAnomEl.style.color = 'var(--red)';
-    kpiRestSub.textContent = 'Voir Onglet 5 (Audit)';
+    kpiRestSub.textContent = 'Voir Onglet Audit';
     if (tabBadge) {
       tabBadge.style.display = 'inline-block';
       tabBadge.textContent = String(errCount);
@@ -8280,9 +8300,7 @@ async function sharePDFNativeCloudOrMail() {
       if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
         await navigator.share({
           title: 'RB RailVigie — ' + monthFolder + ' ' + rep.year,
-          text: 'Rapport RB RailVigie (' + rep.driverName + ').
-Découchers : ' + decSummaryText + '.' + (savedEmail ? '
-Destinataire : ' + savedEmail : ''),
+          text: 'Rapport RB RailVigie (' + rep.driverName + ').\nDécouchers : ' + decSummaryText + '.' + (savedEmail ? '\nDestinataire : ' + savedEmail : ''),
           files: [pdfFile]
         });
         return;
@@ -8317,30 +8335,21 @@ function sendPDFBySavedEmail() {
   doc.save(fileName);
 
   const subject = encodeURIComponent('RB RailVigie — Rapport ' + monthFolder + ' ' + rep.year + ' (' + rep.driverName + ')');
-  const body = encodeURIComponent(
-    'Bonjour,
-
-' +
-    'Veuillez trouver en pièce jointe le rapport PDF "' + fileName + '" (enregistré sur l'appareil).
-
-' +
-    'Synthèse ' + monthFolder + ' ' + rep.year + ' :
-' +
-    '- Conducteur : ' + rep.driverName + '
-' +
-    '- Heures prestées : ' + formatMinToHHMM(rep.totalWorkMin) + '
-' +
-    '- Week-end (Sam / Dim) : ' + formatMinToHHMM(rep.totalSatMin) + ' / ' + formatMinToHHMM(rep.totalSunMin) + '
-' +
-    '- Repos RX / OO : ' + rep.usedCounts.RX + ' RX / ' + rep.usedCounts.OO + ' OO
-' +
-    '- Découchers : ' + decSummaryText + '
-' +
-    '- Détail Découchers : ' + decDetailListText + '
-' +
-    '- Dossier Cloud : Travail / ' + rep.year + ' / ' + monthFolder + '
-'
-  );
+  const bodyLines = [
+    'Bonjour,',
+    '',
+    'Veuillez trouver en pièce jointe le rapport PDF "' + fileName + '" (enregistré sur l\'appareil).',
+    '',
+    'Synthèse ' + monthFolder + ' ' + rep.year + ' :',
+    '- Conducteur : ' + rep.driverName,
+    '- Heures prestées : ' + formatMinToHHMM(rep.totalWorkMin),
+    '- Week-end (Sam / Dim) : ' + formatMinToHHMM(rep.totalSatMin) + ' / ' + formatMinToHHMM(rep.totalSunMin),
+    '- Repos RX / OO : ' + rep.usedCounts.RX + ' RX / ' + rep.usedCounts.OO + ' OO',
+    '- Découchers : ' + decSummaryText,
+    '- Détail Découchers : ' + decDetailListText,
+    '- Dossier Cloud : Travail / ' + rep.year + ' / ' + monthFolder
+  ];
+  const body = encodeURIComponent(bodyLines.join('\n'));
   window.location.href = 'mailto:' + encodeURIComponent(savedEmail) + '?subject=' + subject + '&body=' + body;
 }
 
@@ -8361,7 +8370,7 @@ function switchAppUniverse(univ) {
   const mainVig = document.getElementById('app-universe-vigie');
   const btnSyn = document.getElementById('top-univ-btn-synthese');
   const btnVig = document.getElementById('top-univ-btn-vigie');
-  const titleEl = document.querySelector('header h1');
+  const titleEl = document.getElementById('top-app-title') || document.querySelector('header h1');
   const pdfLabelEl = document.getElementById('top-pdf-btn-label');
 
   if (currentAppUniverse === 'vigie') {
@@ -8369,10 +8378,10 @@ function switchAppUniverse(univ) {
     if (navSyn) navSyn.classList.add('hidden');
     if (mainVig) mainVig.classList.remove('hidden');
     if (btnVig) {
-      btnVig.className = 'py-1.5 px-3 rounded-lg font-extrabold text-xs flex items-center justify-center gap-1.5 bg-amber-500 text-slate-950 shadow transition relative';
+      btnVig.setAttribute('style', 'background: rgba(245, 158, 11, 0.18); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.45);');
     }
     if (btnSyn) {
-      btnSyn.className = 'py-1.5 px-3 rounded-lg font-extrabold text-xs flex items-center justify-center gap-1.5 text-slate-300 hover:text-white transition';
+      btnSyn.setAttribute('style', 'background: transparent; color: #94a3b8; border: 1px solid transparent;');
     }
     if (titleEl) titleEl.textContent = 'RB RailVigie';
     if (pdfLabelEl) pdfLabelEl.textContent = 'PDF Vigie';
@@ -8383,10 +8392,10 @@ function switchAppUniverse(univ) {
     if (mainSyn) mainSyn.classList.remove('hidden');
     if (navSyn) navSyn.classList.remove('hidden');
     if (btnSyn) {
-      btnSyn.className = 'py-1.5 px-3 rounded-lg font-extrabold text-xs flex items-center justify-center gap-1.5 bg-amber-500 text-slate-950 shadow transition';
+      btnSyn.setAttribute('style', 'background: rgba(245, 158, 11, 0.18); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.45);');
     }
     if (btnVig) {
-      btnVig.className = 'py-1.5 px-3 rounded-lg font-extrabold text-xs flex items-center justify-center gap-1.5 text-slate-300 hover:text-white transition relative';
+      btnVig.setAttribute('style', 'background: transparent; color: #94a3b8; border: 1px solid transparent;');
     }
     if (titleEl) titleEl.textContent = 'RB RailSynthèse';
     if (pdfLabelEl) pdfLabelEl.textContent = 'PDF';
@@ -8396,7 +8405,6 @@ function switchAppUniverse(univ) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Boutons PDF, Cloud et Sauvegarde indépendants selon l'onglet sélectionné en haut
 async function triggerContextualPDFDownload() {
   if (currentAppUniverse === 'vigie') {
     downloadPDFDirect();
