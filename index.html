@@ -1313,7 +1313,7 @@
         <div class="kpi">
           <div class="label">Repos RX &amp; Alternements OO</div>
           <div class="val" id="kpiRxOoCount">0 RX / 0 OO</div>
-          <div class="sub">RX &ge; 38h (62h double) • OO si &lt; 38h</div>
+          <div class="sub" id="kpiRxOoSub">Max 7j cons&eacute;c. (RX/8j) &bull; RX &ge; 38h</div>
         </div>
         <div class="kpi">
           <div class="label">Découchers (Hôtel &ge; 9h)</div>
@@ -1438,11 +1438,11 @@
     </div>
   </section>
 
-  <!-- ONGLET 5 : Audit des Intervalles/Repos, Traçabilité des Heures Sup. & Mémos Règles -->
+  <!-- ONGLET 5 : Audit des Intervalles/Repos, Série Max 7j, Traçabilité des Heures Sup. & Mémos Règles -->
   <section id="tabPanel-5" class="tab-panel">
     <div class="grid-two">
       <div class="card">
-        <h2>Contrôle des Intervalles, Repos 14h (&le;12h), Rattrapages &amp; RX (38h) vs OO</h2>
+        <h2>Contrôle des Intervalles, Série Max 7 Jours, Repos 14h (&le;12h), Rattrapages &amp; RX (38h) vs OO</h2>
         <div class="log-list" id="restAuditList"></div>
       </div>
       <div class="card">
@@ -1454,6 +1454,10 @@
     <div class="card" style="margin-top: 14px;">
       <h2>Mémo des Règles Appliquées (CP 226 / Lineas)</h2>
       <div class="rules-grid">
+        <div class="rule-box">
+          <strong>Maximum 7 Jours Consécutifs (RX tous les 8 jours)</strong>
+          <p>Il est interdit de travailler plus de <strong>7 jours de suite</strong>. Un repos périodique <code>RX</code> doit obligatoirement être placé au moins tous les <strong>8 jours</strong> (vigilance dès le 7e jour, infraction rouge dès le 8e jour).</p>
+        </div>
         <div class="rule-box">
           <strong>Repos Domicile (14h00) &amp; Seuil &le;12h00</strong>
           <p>Minimum 14h00 entre deux services à domicile. Réduction autorisée 1 fois/semaine (min. légal 9h00). Dès <strong>12h00 ou moins</strong>, alerte Anomalie rouge.</p>
@@ -5826,6 +5830,38 @@
         return (da ? da.getTime() : 0) - (db ? db.getTime() : 0);
       });
 
+      // Calcul des séries de jours travaillés consécutifs (Règle : max 7 jours de suite, RX obligatoire tous les 8 jours)
+      const uniqueWorkedTimestamps = [];
+      allStates.forEach(st => {
+        const d = parseDDMMYYYYToDate(st.serviceDate);
+        if (!d) return;
+        const ts = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12, 0, 0).getTime();
+        if (uniqueWorkedTimestamps.length === 0 || uniqueWorkedTimestamps[uniqueWorkedTimestamps.length - 1] !== ts) {
+          uniqueWorkedTimestamps.push(ts);
+        }
+      });
+
+      let maxConsecutiveWorkedDays = 0;
+      let activeDateConsecutiveDays = 0;
+      const activeDateObj = parseDDMMYYYYToDate(appState.serviceDate);
+      const activeDayTs = activeDateObj
+        ? new Date(activeDateObj.getFullYear(), activeDateObj.getMonth(), activeDateObj.getDate(), 12, 0, 0).getTime()
+        : null;
+
+      let curStreak = 0;
+      for (let i = 0; i < uniqueWorkedTimestamps.length; i++) {
+        if (i === 0) {
+          curStreak = 1;
+        } else {
+          const diffDays = Math.round((uniqueWorkedTimestamps[i] - uniqueWorkedTimestamps[i - 1]) / 86400000);
+          curStreak = (diffDays === 1) ? (curStreak + 1) : 1;
+        }
+        if (curStreak > maxConsecutiveWorkedDays) maxConsecutiveWorkedDays = curStreak;
+        if (activeDayTs !== null && uniqueWorkedTimestamps[i] === activeDayTs) {
+          activeDateConsecutiveDays = curStreak;
+        }
+      }
+
       const monthStates = allStates.filter(st => {
         const d = parseDDMMYYYYToDate(st.serviceDate);
         if (!d) return false;
@@ -5905,6 +5941,8 @@
         totalMonthBrut: monthPetitMatinBrut + monthPertBrut + monthRealtimeBrut + monthGrandRappelBrut + monthDecoucherBrut,
         totalMonthNet: monthDecoucherNet,
         weeklyTotals,
+        maxConsecutiveWorkedDays,
+        activeDateConsecutiveDays,
         allStatesChronological: allStates
       };
     }
@@ -6124,7 +6162,15 @@
         const curWeekKey = dObj ? getISOWeekKey(dObj) : null;
         const curWeekMin = (curWeekKey && monthly.weeklyTotals[curWeekKey]) ? monthly.weeklyTotals[curWeekKey] : m.effectiveWorkMin;
 
+        const vigieMaxStreak = (lastComputedReport && lastComputedReport.maxConsecutiveWorkDays) ? lastComputedReport.maxConsecutiveWorkDays : 0;
+        const effectiveStreak = Math.max(monthly.activeDateConsecutiveDays || 0, monthly.maxConsecutiveWorkedDays || 0, vigieMaxStreak);
+
         const alerts = [];
+        if (effectiveStreak > 7) {
+          alerts.push("Infraction série de travail : " + effectiveStreak + " jours travaillés consécutifs (> 7 jours max autorisés — un RX doit être placé au moins tous les 8 jours).");
+        } else if (effectiveStreak === 7) {
+          alerts.push("Vigilance série de travail : 7e jour travaillé consécutif atteint (un RX doit obligatoirement être placé le 8e jour).");
+        }
         if (m.effectiveWorkMin > 600) {
           alerts.push("Dépassement journalier (> 10h00) : +" + formatMinutesToHHMM(m.dailyOvertimeMin) + " d'heures supplémentaires.");
         }
@@ -6145,8 +6191,8 @@
           '<div class="flex items-center justify-between text-[10px]">' +
             '<span class="font-bold uppercase text-slate-400">Seuils Heures Sup. &amp; Contrat :</span>' +
             (alerts.length === 0
-              ? '<span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-700/60 font-bold">Conforme (&le; 10h/j &bull; &le; 46h/sem &bull; &le; 38h moy.)</span>'
-              : '<span class="px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-700/60 font-bold">' + alerts.length + ' seuil(s) franchi(s)</span>') +
+              ? '<span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-700/60 font-bold">Conforme (&le; 7j cons&eacute;c. &bull; &le; 10h/j &bull; &le; 46h/sem &bull; &le; 38h moy.)</span>'
+              : '<span class="px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-700/60 font-bold">' + alerts.length + ' alerte(s)</span>') +
           '</div>' +
           (alerts.length > 0
             ? '<div class="space-y-1 text-[10px] text-amber-200 bg-amber-950/40 border border-amber-700/50 rounded-xl p-2">' +
@@ -7039,6 +7085,12 @@ function recalculateAll() {
   let longHotelCount = 0;
   let reducedRestCount = 0;
   let abnormalRest12Count = 0;
+  let consecutiveWorkDays = 0;
+  let consecutiveStartDay = null;
+  let maxConsecutiveWorkDays = 0;
+  let daysWithoutRxStreak = 0;
+  let rxStreakStartDay = null;
+  const streakAnomalyDays = new Set();
 
   const decoucherDetails = [];
   const weeklyMinutes = {};
@@ -7216,6 +7268,68 @@ function recalculateAll() {
       qualBadge = '<span class="badge b-ok">' + r.code + '</span>';
     }
 
+    // Contrôle de la règle des 7 jours maximum de travail consécutifs (un RX obligatoire au moins tous les 8 jours)
+    const isWorkedDayForStreak = isWorkedPrestationRow(r) || WORK_PRESTA_CODES.includes(r.code);
+    if (isWorkedDayForStreak) {
+      if (consecutiveWorkDays === 0) consecutiveStartDay = r.day;
+      consecutiveWorkDays++;
+      if (consecutiveWorkDays > maxConsecutiveWorkDays) {
+        maxConsecutiveWorkDays = consecutiveWorkDays;
+      }
+      if (daysWithoutRxStreak === 0) rxStreakStartDay = r.day;
+      daysWithoutRxStreak++;
+
+      if (consecutiveWorkDays === 7) {
+        flags.push('<span class="badge b-warn">7e j. consécutif (RX requis J+1)</span>');
+        restAuditEvents.push({
+          level: 'warn',
+          day: r.day,
+          title: 'Jours ' + consecutiveStartDay + '➔' + r.day + ' — 7e jour de travail consécutif atteint (Maximum autorisé)',
+          detail: 'Série de 7 jours travaillés de suite (du J' + consecutiveStartDay + ' au J' + r.day + '). Il est interdit de travailler plus de 7 jours de suite : un repos RX doit obligatoirement être placé le 8e jour.'
+        });
+      } else if (consecutiveWorkDays > 7) {
+        flags.push('<span class="badge b-err">INFRACTION ' + consecutiveWorkDays + 'j consécutifs (&gt;7j max)</span>');
+        streakAnomalyDays.add(r.day);
+        restAuditEvents.push({
+          level: 'err',
+          day: r.day,
+          title: 'Jours ' + consecutiveStartDay + '➔' + r.day + ' — INFRACTION : ' + consecutiveWorkDays + ' jours travaillés consécutifs (> 7 jours max)',
+          detail: 'Série de ' + consecutiveWorkDays + ' jours travaillés de suite sans repos (du J' + consecutiveStartDay + ' au J' + r.day + '). Nous ne pouvons pas travailler plus de 7 jours de suite : un RX doit au moins être placé tous les 8 jours.'
+        });
+      } else if (daysWithoutRxStreak >= 8) {
+        flags.push('<span class="badge b-err">INFRACTION ' + daysWithoutRxStreak + 'j sans RX (OO seul)</span>');
+        streakAnomalyDays.add(r.day);
+        restAuditEvents.push({
+          level: 'err',
+          day: r.day,
+          title: 'Jours ' + rxStreakStartDay + '➔' + r.day + ' — INFRACTION : ' + daysWithoutRxStreak + ' jours sans repos RX (RX obligatoire tous les 8 jours)',
+          detail: 'Aucun jour de repos RX posé entre le J' + rxStreakStartDay + ' et le J' + r.day + ' (série uniquement coupée par un alternement OO < 38h). Un RX doit au moins être placé tous les 8 jours.'
+        });
+      }
+    } else if (r.code === 'OO') {
+      consecutiveWorkDays = 0;
+      consecutiveStartDay = null;
+      if (daysWithoutRxStreak > 0) {
+        daysWithoutRxStreak++;
+        if (daysWithoutRxStreak >= 8) {
+          flags.push('<span class="badge b-err">8e j. sans RX (RX requis au lieu de OO)</span>');
+          streakAnomalyDays.add(r.day);
+          restAuditEvents.push({
+            level: 'err',
+            day: r.day,
+            title: 'Jours ' + rxStreakStartDay + '➔' + r.day + ' — INFRACTION : Alternement OO posé le ' + daysWithoutRxStreak + 'e jour sans RX',
+            detail: 'Après 7 jours sans RX depuis le J' + rxStreakStartDay + ', un repos périodique RX (>= 38h) est obligatoire au plus tard le 8e jour (un simple OO ne suffit pas).'
+          });
+        }
+      }
+    } else {
+      // RX, congés (ELH, BLH, BELH, WKD, REC, ZZ, ZB, NMBS...) ou jour vierge '-' réinitialisent la série
+      consecutiveWorkDays = 0;
+      consecutiveStartDay = null;
+      daysWithoutRxStreak = 0;
+      rxStreakStartDay = null;
+    }
+
     totalWorkMin += dayWorkMin;
     weeklyMinutes[weekKey].min += dayWorkMin;
     if (dayWorkMin > 0) weeklyMinutes[weekKey].days.push(r.day);
@@ -7229,7 +7343,9 @@ function recalculateAll() {
     if (flagsCell) flagsCell.innerHTML = flags.length ? flags.join(' ') : '-';
     if (restCell) restCell.innerHTML = '-';
     const rowEl = document.getElementById('row-' + r.day);
-    if (rowEl) rowEl.classList.remove('row-anomaly');
+    if (rowEl) {
+      rowEl.classList.toggle('row-anomaly', streakAnomalyDays.has(r.day));
+    }
   });
 
   // Contrôle des intervalles entre prestations (14h, <=12h, rattrapage, hôtel 9h + Court/Long, RX 38h+24h vs OO)
@@ -7530,6 +7646,11 @@ function recalculateAll() {
   document.getElementById('kpiOvertimeQuarter').textContent = formatMinToHHMM(totalQuarterOTMin);
   document.getElementById('kpiQuarterSub').textContent = 'Cumul trimestre : ' + formatMinToHHMM(totalQuarterMin) + ' / ' + formatMinToHHMM(quarterThresholdMin);
   document.getElementById('kpiRxOoCount').textContent = usedCounts.RX + ' RX / ' + usedCounts.OO + ' OO';
+  const kpiRxOoSubEl = document.getElementById('kpiRxOoSub');
+  if (kpiRxOoSubEl) {
+    kpiRxOoSubEl.textContent = 'Série max : ' + maxConsecutiveWorkDays + '/7 j. conséc. • RX ≥ 38h';
+    kpiRxOoSubEl.style.color = maxConsecutiveWorkDays > 7 ? 'var(--red)' : (maxConsecutiveWorkDays === 7 ? 'var(--accent)' : 'var(--muted)');
+  }
   document.getElementById('kpiHotelCount').textContent = hotelCount + ' (' + shortHotelCount + ' Court / ' + longHotelCount + ' Long)';
   const kpiHotelSubEl = document.getElementById('kpiHotelSub');
   if (kpiHotelSubEl) {
@@ -7602,6 +7723,7 @@ function recalculateAll() {
     decoucherDetails: decoucherDetails,
     reducedRestCount: reducedRestCount,
     abnormalRest12Count: abnormalRest12Count,
+    maxConsecutiveWorkDays: maxConsecutiveWorkDays,
     restAuditEvents: restAuditEvents,
     traceabilityEvents: traceabilityEvents
   };
@@ -8169,7 +8291,7 @@ function buildAuditJsPDF() {
     startY: 24,
     head: [['Indicateur Temps & Week-end', 'Valeur', 'Indicateur Repos, Découchers & Compteurs', 'Valeur']],
     body: [
-      ['Heures Prestées (Mois)', formatMinToHHMM(rep.totalWorkMin), 'Jours RX / Alternements OO posés', rep.usedCounts.RX + ' RX / ' + rep.usedCounts.OO + ' OO'],
+      ['Heures Prestées (Mois)', formatMinToHHMM(rep.totalWorkMin), 'Jours RX / OO • Série max travaillée', rep.usedCounts.RX + ' RX / ' + rep.usedCounts.OO + ' OO (Max ' + (rep.maxConsecutiveWorkDays || 0) + '/7 j. conséc.)'],
       ['Heures Samedi / Dimanche', formatMinToHHMM(rep.totalSatMin) + ' / ' + formatMinToHHMM(rep.totalSunMin), 'Découchers (Courts <=24h / Longs >24h)', decSummaryText],
       ['Heures Sup. Jour (>10h) / Semaine (>46h)', formatMinToHHMM(rep.totalDailyOTMin) + ' / ' + formatMinToHHMM(rep.totalWeeklyOTMin), 'Détail des Découchers (Courts vs Longs)', decDetailListText],
       ['Heures Sup. Trimestrielles (>38h/sem)', formatMinToHHMM(rep.totalQuarterOTMin), 'Repos réduits (<14h) / Anormaux (<=12h) / Anomalies', rep.reducedRestCount + ' réd. / ' + rep.abnormalRest12Count + ' <=12h / ' + rep.restAuditEvents.filter(e => e.level === 'err').length + ' anom.']
@@ -8640,3 +8762,4 @@ function updateLiveVigieAlertBanner(activeDayNum) {
 </script>
 </body>
 </html>
+
