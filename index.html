@@ -367,6 +367,52 @@
       margin-top: 8px;
     }
 
+  
+    /* Style unifié des onglets du bas (inspiré de RailVigie) */
+    #nav-bottom-synthese {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 3px;
+      background: rgba(15, 23, 42, 0.98);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-top: 1px solid var(--border);
+      padding: 6px 4px calc(8px + env(safe-area-inset-bottom, 0px)) 4px;
+      box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.45);
+    }
+    #nav-bottom-synthese button {
+      position: relative;
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid transparent;
+      padding: 5px 2px;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      width: 100%;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+    #nav-bottom-synthese button .tab-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    #nav-bottom-synthese button.active-vigie-tab {
+      background: rgba(245, 158, 11, 0.18);
+      color: var(--accent);
+      border-color: rgba(245, 158, 11, 0.45);
+    }
+
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen pb-24">
@@ -1102,37 +1148,37 @@
 
   </main>
 
-  <!-- BARRE DE NAVIGATION INFERIEURE RAILSYNTHESE (6 ONGLETS) -->
-  <nav id="nav-bottom-synthese" class="no-print fixed bottom-0 left-0 right-0 z-30 bg-slate-900/95 backdrop-blur border-t border-slate-800 grid grid-cols-6 py-2 px-1">
-    <button onclick="switchMobileTab('service')" id="nav-service" class="flex flex-col items-center gap-1 py-1 text-amber-400">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-      <span class="text-[10px] font-bold">Prestation</span>
+  <!-- BARRE DE NAVIGATION INFERIEURE RAILSYNTHESE (6 ONGLETS STYLÉS) -->
+  <nav id="nav-bottom-synthese" class="no-print" role="tablist">
+    <button onclick="switchMobileTab('service')" id="nav-service" class="active-vigie-tab">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      <span class="tab-label">Prestation</span>
     </button>
-    <button onclick="switchMobileTab('trains')" id="nav-trains" class="flex flex-col items-center gap-1 py-1 text-slate-400">
+    <button onclick="switchMobileTab('trains')" id="nav-trains">
       <div class="relative">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h8m-8 4h8m-4 4v3m-4 3h8a2 2 0 002-2V6a2 2 0 00-2-2H8a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h8m-8 4h8m-4 4v3m-4 3h8a2 2 0 002-2V6a2 2 0 00-2-2H8a2 2 0 00-2 2v13a2 2 0 002 2z"/></svg>
         <span id="nav-train-count" class="absolute -top-1.5 -right-3 bg-amber-500 text-slate-950 text-[9px] font-black px-1.5 rounded-full">0</span>
       </div>
-      <span class="text-[10px] font-bold">REBU</span>
+      <span class="tab-label">REBU</span>
     </button>
-    <button onclick="switchMobileTab('docs')" id="nav-docs" class="flex flex-col items-center gap-1 py-1 text-slate-400">
+    <button onclick="switchMobileTab('docs')" id="nav-docs">
       <div class="relative">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
         <span id="nav-docs-count" class="absolute -top-1.5 -right-3 bg-emerald-500 text-slate-950 text-[9px] font-black px-1.5 rounded-full">0</span>
       </div>
-      <span class="text-[10px] font-bold">Autres docs</span>
+      <span class="tab-label">Docs</span>
     </button>
-    <button onclick="switchMobileTab('stations')" id="nav-stations" class="flex flex-col items-center gap-1 py-1 text-slate-400">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-      <span class="text-[10px] font-bold">Gares</span>
+    <button onclick="switchMobileTab('stations')" id="nav-stations">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      <span class="tab-label">Gares</span>
     </button>
-    <button onclick="switchMobileTab('calc')" id="nav-calc" class="flex flex-col items-center gap-1 py-1 text-slate-400">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-      <span class="text-[10px] font-bold">Calculs</span>
+    <button onclick="switchMobileTab('calc')" id="nav-calc">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+      <span class="tab-label">Calculs</span>
     </button>
-    <button onclick="switchMobileTab('settings')" id="nav-settings" class="flex flex-col items-center gap-1 py-1 text-slate-400">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-      <span class="text-[10px] font-bold">IA / Sauveg.</span>
+    <button onclick="switchMobileTab('settings')" id="nav-settings">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      <span class="tab-label">IA / R&eacute;gl.</span>
     </button>
   </nav>
 
@@ -1140,19 +1186,18 @@
   <div class="container">
   <!-- ONGLET 1 : Conducteur, Période, Import PDF/Image & Options Export (Sans le Point 2) -->
   <main id="tabPanel-1" class="tab-panel active">
-    <div class="grid-two">
-      <!-- Bloc 1 : Conducteur, Période & Importation Horaires -->
+      <!-- Conducteur, Période & Importation Horaires E500 (Options Cloud / Mail / IA unifiées dans l'onglet IA / Sauveg.) -->
       <div class="card">
         <div class="section-head">
-          <h2>1. Conducteur, Période &amp; Import Horaires</h2>
-          <div style="display:flex; gap:6px;">
-            <button type="button" class="btn-outline" style="padding:5px 10px; font-size:0.75rem;" onclick="resetBlankMonth()">Mois Vierge</button>
+          <h2>Conducteur, Période &amp; Import Horaires (E500)</h2>
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button type="button" class="btn-outline" style="padding:5px 10px; font-size:0.75rem;" onclick="resetBlankMonth(true)">Mois Vierge</button>
             <button type="button" class="btn-amber" style="padding:5px 10px; font-size:0.75rem;" onclick="loadOctoberDemo()">Exemple Oct.</button>
           </div>
         </div>
         <div class="form-row">
           <div class="field">
-            <label>Nom du conducteur (vierge par défaut)</label>
+            <label>Nom du conducteur (partagé avec RailSynthèse)</label>
             <input type="text" id="driverInput" value="" placeholder="Ex: Rémy Brasseur" oninput="checkDriverMatch(); saveStateToLocal(true);">
             <div id="driverMatchInfo" class="match-status">Application vierge par défaut (prête pour partage aux collègues).</div>
           </div>
@@ -1215,71 +1260,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Bloc 2 : Options Multi-Cloud, Mail & Choix IA -->
-      <div class="card">
-        <h2>2. Options Multi-Cloud, Mail &amp; Assistant IA</h2>
-        <p class="card-desc">
-          Choisis ton service Cloud préféré (OneDrive, iCloud, Google Drive, Dropbox, Proton…) et ton mode de lecture. La lecture des PDF E500 fonctionne à 100 % en mode autonome sans clé IA.
-        </p>
-        <div class="form-row">
-          <div class="field">
-            <label>Service Cloud préféré</label>
-            <select id="cloudProviderSelect" onchange="saveUserSettings(); updateCloudPathPreview();">
-              <option value="native">📱 Menu Partage Natif (Tous Clouds installés)</option>
-              <option value="onedrive">☁️ Microsoft OneDrive</option>
-              <option value="icloud">🍏 Apple iCloud Drive</option>
-              <option value="gdrive">📁 Google Drive</option>
-              <option value="dropbox">📦 Dropbox</option>
-              <option value="proton">🔒 Proton Drive / Nextcloud</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Adresse e-mail destinataire</label>
-            <input type="email" id="userEmailInput" value="" placeholder="Ex: prenom.nom@mail.com" oninput="saveUserSettings()">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="field">
-            <label id="cloudFolderLabel">Dossier Cloud cible automatique</label>
-            <div id="cloudPathPreview" style="background:#0b1120; border:1px solid var(--border); padding:8px 10px; border-radius:6px; font-size:0.83rem; color:var(--accent); font-weight:700;">
-              Travail / 2026 / 11 - Novembre
-            </div>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="field">
-            <label>Moteur d'analyse PDF &amp; IA (au choix)</label>
-            <select id="aiProviderSelect" onchange="toggleAiKeyVisibility(); saveUserSettings();">
-              <option value=" local_e500" selected>⚡ Lecture Directe E500 (Autonome sans IA — Recommandé)</option>
-              <option value="openai">🤖 OpenAI (ChatGPT / GPT-4o)</option>
-              <option value="mistral">🌪️ Mistral AI (Le Chat)</option>
-              <option value="claude">🧠 Anthropic (Claude)</option>
-              <option value="gemini">✨ Google Gemini</option>
-              <option value="groq">🚀 Groq / DeepSeek</option>
-            </select>
-          </div>
-          <div class="field" id="aiKeyFieldWrap" style="display:none;">
-            <label id="aiKeyLabel">Clé API (Optionnel — secours IA)</label>
-            <input type="password" id="geminiApiKeyInput" value="" placeholder="Colle ta clé API ici..." oninput="saveUserSettings()">
-          </div>
-        </div>
-
-        <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
-          <button type="button" class="btn-green full-width" onclick="sharePDFNativeCloudOrMail()">
-            ☁️ Envoyer le PDF vers mon Cloud / Partager
-          </button>
-          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:8px;">
-            <button type="button" class="btn-outline full-width" onclick="openSelectedCloudPortal()">
-              🌐 Ouvrir mon Cloud Web
-            </button>
-            <button type="button" class="btn-outline full-width" onclick="sendPDFBySavedEmail()">
-              ✉️ Envoyer par Mail
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
   </main>
 
   <!-- ONGLET 2 : Synthèse -->
@@ -1890,27 +1870,85 @@
     }
 
     window.addEventListener("DOMContentLoaded", async () => {
+      isAppHydrated = false;
       try {
+        loadUserSettings();
+
         const urlParams = new URLSearchParams(window.location.search);
         const isVirginShare = urlParams.has("vierge") || urlParams.has("new") || urlParams.has("share");
 
+        // 1. Récupérer les états existants dans IndexedDB ET LocalStorage (migration automatique multi-versions)
+        let savedHistory = await dbGet("railsynthese_history_idb");
+        if (!Array.isArray(savedHistory) || savedHistory.length === 0) {
+          try {
+            const lsHist = localStorage.getItem("railsynthese_history_backup_ls");
+            if (lsHist) savedHistory = JSON.parse(lsHist);
+          } catch (e) {}
+        }
+
+        let savedState = await dbGet("railsynthese_current_state_idb");
+        if (!savedState || typeof savedState !== "object") {
+          for (const lsKey of ["railsynthese_current_state_backup_ls", "railsynthese_current_state_idb", "railsynthese_current_state", "railsynthese_state"]) {
+            try {
+              const rawLs = localStorage.getItem(lsKey);
+              if (rawLs) {
+                const parsedLs = JSON.parse(rawLs);
+                if (parsedLs && typeof parsedLs === "object") {
+                  savedState = parsedLs;
+                  break;
+                }
+              }
+            } catch (e) {}
+          }
+        }
+
+        // Vérifier aussi l'état RailVigie dans LocalStorage ET IndexedDB
+        let vigieLoaded = loadStateFromLocal();
+        if (!vigieLoaded) {
+          try {
+            const vigieIdb = await dbGet("rb_railvigie_state_idb");
+            if (vigieIdb && Array.isArray(vigieIdb.scheduleData) && vigieIdb.scheduleData.length > 0) {
+              vigieLoaded = applyVigieStateObject(vigieIdb);
+            }
+          } catch (e) {}
+        }
+
+        const hasExistingPrestaData = Boolean(
+          (savedState && ((Array.isArray(savedState.activities) && savedState.activities.length > 0) || (Array.isArray(savedState.trains) && savedState.trains.length > 0))) ||
+          (vigieLoaded && isVigieScheduleNonEmpty(scheduleData))
+        );
+
+        let shouldResetForVirginShare = false;
         if (isVirginShare) {
-          // Ouverture via le QR Code partagé : réinitialise la session active à 100% vierge (aucun nom, prestation, REBU ni document)
-          localStorage.removeItem("railsynthese_last_driver_name");
-          localStorage.removeItem("rb_railvigie_state_v6");
-          await dbSet("railsynthese_current_state_idb", null);
+          if (!hasExistingPrestaData) {
+            shouldResetForVirginShare = true;
+          } else {
+            shouldResetForVirginShare = confirm("Lien de partage vierge détecté : voulez-vous conserver vos données actuelles (Prestation, REBU, E500) ?\n\nAppuyez sur Annuler pour conserver toutes vos données, ou sur OK pour tout remettre à zéro.");
+          }
           if (window.history && window.history.replaceState) {
             window.history.replaceState({}, document.title, window.location.pathname);
           }
         }
 
-        const lastDriver = isVirginShare ? "" : localStorage.getItem("railsynthese_last_driver_name");
-        const savedHistory = await dbGet("railsynthese_history_idb");
+        if (shouldResetForVirginShare) {
+          localStorage.removeItem("railsynthese_last_driver_name");
+          localStorage.removeItem("railsynthese_current_state_backup_ls");
+          LEGACY_VIGIE_KEYS.forEach(k => localStorage.removeItem(k));
+          await dbSet("railsynthese_current_state_idb", null);
+          await dbSet("rb_railvigie_state_idb", null);
+          savedState = null;
+          vigieLoaded = false;
+        }
+
+        if (!vigieLoaded) {
+          resetBlankMonth(false);
+        }
+
+        const lastDriver = shouldResetForVirginShare ? "" : localStorage.getItem("railsynthese_last_driver_name");
         if (Array.isArray(savedHistory)) {
           historyEntries = savedHistory;
         }
 
-        const savedState = isVirginShare ? null : await dbGet("railsynthese_current_state_idb");
         if (savedState && typeof savedState === "object") {
           const mergedOpTypes = Array.isArray(savedState.opTypes) && savedState.opTypes.length > 0
             ? [...savedState.opTypes]
@@ -1961,7 +1999,12 @@
 
         initCloudAndAISettingsUI();
       } catch (e) {}
+
+      isAppHydrated = true;
       renderAll();
+      // Sauvegarder immédiatement dans les clés permanentes après chargement/migration
+      saveState();
+      saveStateToLocal(false);
     });
 
     function togglePdfOption(field, isChecked) {
@@ -2237,7 +2280,26 @@
       }
     }
 
+    let isAppHydrated = false;
+
+    function saveLightweightSyntheseBackupToLS(stateObj) {
+      try {
+        localStorage.setItem("railsynthese_current_state_backup_ls", JSON.stringify(stateObj));
+      } catch (quotaErr) {
+        try {
+          const lightCopy = {
+            ...stateObj,
+            serviceSheetImages: [],
+            trains: Array.isArray(stateObj.trains) ? stateObj.trains.map(t => ({ ...t, documentImageDataUrl: "" })) : [],
+            otherDocs: Array.isArray(stateObj.otherDocs) ? stateObj.otherDocs.map(d => ({ ...d, imageDataUrl: "" })) : []
+          };
+          localStorage.setItem("railsynthese_current_state_backup_ls", JSON.stringify(lightCopy));
+        } catch (e2) {}
+      }
+    }
+
     async function saveState() {
+      if (!isAppHydrated) return;
       const ind = document.getElementById("autosave-indicator");
       if (ind) {
         ind.textContent = "Enregistrement...";
@@ -2247,6 +2309,7 @@
         if (appState.driverName && appState.driverName.trim() !== "") {
           localStorage.setItem("railsynthese_last_driver_name", appState.driverName.trim());
         }
+        saveLightweightSyntheseBackupToLS(appState);
         await dbSet("railsynthese_current_state_idb", appState);
         if (ind) {
           ind.innerHTML = "Sauvegard&eacute;";
@@ -2291,9 +2354,7 @@
         if (el) el.classList.toggle("hidden", t !== tab);
         const btn = document.getElementById("nav-" + t);
         if (btn) {
-          btn.className = t === tab
-            ? "flex flex-col items-center gap-1 py-1 text-amber-400"
-            : "flex flex-col items-center gap-1 py-1 text-slate-400";
+          btn.classList.toggle("active-vigie-tab", t === tab);
         }
       });
       if (tab === "calc") renderPayrollAndMonthlySummary();
@@ -6151,6 +6212,7 @@
 
       historyEntries.unshift(entry);
       await dbSet("railsynthese_history_idb", historyEntries);
+      try { const lightHist = historyEntries.map(h => ({ savedAt: h.savedAt, state: { ...h.state, serviceSheetImages: [], trains: (h.state.trains || []).map(t => ({ ...t, documentImageDataUrl: "" })), otherDocs: [] } })); localStorage.setItem("railsynthese_history_backup_ls", JSON.stringify(lightHist)); } catch (e) {}
       renderSavedDaysList();
       renderPayrollAndMonthlySummary();
       if (!silent) showStatus("Prestation enregistr\u00e9e dans l\u2019historique (" + historyEntries.length + " prestation(s) m\u00e9moris\u00e9e(s)).");
@@ -6161,6 +6223,7 @@
       if (!confirm("Supprimer cette prestation de l\u2019historique mensuel ?")) return;
       historyEntries.splice(idx, 1);
       await dbSet("railsynthese_history_idb", historyEntries);
+      try { const lightHist = historyEntries.map(h => ({ savedAt: h.savedAt, state: { ...h.state, serviceSheetImages: [], trains: (h.state.trains || []).map(t => ({ ...t, documentImageDataUrl: "" })), otherDocs: [] } })); localStorage.setItem("railsynthese_history_backup_ls", JSON.stringify(lightHist)); } catch (e) {}
       renderSavedDaysList();
       renderPayrollAndMonthlySummary();
       showStatus("Archive supprim\u00e9e de l\u2019historique.");
@@ -6214,12 +6277,19 @@
     }
 
     function exportDayJSON() {
-      const blob = new Blob([JSON.stringify(appState, null, 2)], { type: "application/json" });
+      const fullBackup = {
+        _backupType: "RB_UNIFIED_BACKUP_V1",
+        savedAt: new Date().toISOString(),
+        appState: appState,
+        historyEntries: historyEntries,
+        vigieState: buildVigieStateSnapshot()
+      };
+      const blob = new Blob([JSON.stringify(fullBackup, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
       const safeDate = (appState.serviceDate || "sauvegarde").replace(/\//g, "-");
-      a.download = "RB_RailSynthese_" + safeDate + "_" + (appState.serviceNumber || "BCHA") + ".json";
+      a.download = "RB_Sauvegarde_Complete_" + safeDate + "_" + (appState.serviceNumber || "E500") + ".json";
       a.click();
     }
 
@@ -6229,7 +6299,8 @@
       const reader = new FileReader();
       reader.onload = async () => {
         try {
-          const loaded = JSON.parse(reader.result);
+          const parsed = JSON.parse(reader.result);
+          const loaded = (parsed && parsed._backupType === "RB_UNIFIED_BACKUP_V1" && parsed.appState) ? parsed.appState : parsed;
           const keptOpTypes = getActiveOpTypes();
           if (Array.isArray(loaded.opTypes)) {
             loaded.opTypes.forEach(t => { if (!keptOpTypes.includes(t)) keptOpTypes.push(t); });
@@ -6243,10 +6314,18 @@
             trains: Array.isArray(loaded.trains) ? loaded.trains.map(normalizeTrainCase1) : [],
             otherDocs: Array.isArray(loaded.otherDocs) ? loaded.otherDocs : []
           };
+          if (parsed && Array.isArray(parsed.historyEntries) && parsed.historyEntries.length > 0) {
+            historyEntries = parsed.historyEntries;
+            await dbSet("railsynthese_history_idb", historyEntries);
+          }
+          if (parsed && parsed.vigieState && Array.isArray(parsed.vigieState.scheduleData)) {
+            applyVigieStateObject(parsed.vigieState);
+            saveStateToLocal(true);
+          }
           expandedActivityIdx = null;
           renderAll();
           await saveState();
-          showStatus("Fichier de sauvegarde charg\u00e9 avec succ\u00e8s.");
+          showStatus("Sauvegarde compl\u00e8te (Prestation, REBU & E500) charg\u00e9e avec succ\u00e8s !");
         } catch (e) {
           showStatus("Fichier JSON invalide.");
         }
@@ -6267,7 +6346,17 @@ let scheduleData = [];
 let lastComputedReport = null;
 let currentScheduleFilter = 'all';
 
-const STORAGE_KEY = 'rb_railvigie_state_v6';
+const STORAGE_KEY = 'rb_railvigie_state_permanent';
+const LEGACY_VIGIE_KEYS = [
+  'rb_railvigie_state_permanent',
+  'rb_railvigie_state_v6',
+  'rb_railvigie_state_v5',
+  'rb_railvigie_state_v4',
+  'rb_railvigie_state_v3',
+  'rb_railvigie_state_v2',
+  'rb_railvigie_state_v1',
+  'rb_railvigie_state'
+];
 const SETTINGS_KEY = 'rb_railvigie_settings_v6';
 const DAY_NAMES = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
 const CODES = ['BVTS', 'SIM', 'CTFT', 'CTFP', 'RX', 'OO', 'ELH', 'REC', 'WKD', 'ZZ', 'ZB', 'BLH', 'BELH', 'BTH', 'BTULH', 'NMBS', '-'];
@@ -6346,31 +6435,51 @@ function triggerManualSave() {
   }
 }
 
+function buildVigieStateSnapshot() {
+  return {
+    month: document.getElementById('monthSelect').value,
+    year: document.getElementById('yearInput').value,
+    driverInput: document.getElementById('driverInput').value,
+    e500FullName: document.getElementById('e500FullName').value,
+    driverMatricule: document.getElementById('driverMatricule').value,
+    prevQuarterHours: document.getElementById('prevQuarterHours').value,
+    quarterWeeks: document.getElementById('quarterWeeks').value,
+    counters: {
+      RX: document.getElementById('cnt_RX').value,
+      NMBS: document.getElementById('cnt_NMBS').value,
+      REC: document.getElementById('cnt_REC').value,
+      WKD: document.getElementById('cnt_WKD').value,
+      ZZ: document.getElementById('cnt_ZZ').value,
+      ZB: document.getElementById('cnt_ZB').value,
+      BLH: document.getElementById('cnt_BLH').value,
+      BELH: document.getElementById('cnt_BELH').value,
+      BTH: document.getElementById('cnt_BTH').value,
+      BTULH: document.getElementById('cnt_BTULH').value
+    },
+    scheduleData: scheduleData
+  };
+}
+
+function isVigieScheduleNonEmpty(arr) {
+  return Array.isArray(arr) && arr.some(r => (r.code && r.code !== '-') || r.start || r.end);
+}
+
 function saveStateToLocal(showBadge) {
+  if (!isAppHydrated) return;
   try {
-    const state = {
-      month: document.getElementById('monthSelect').value,
-      year: document.getElementById('yearInput').value,
-      driverInput: document.getElementById('driverInput').value,
-      e500FullName: document.getElementById('e500FullName').value,
-      driverMatricule: document.getElementById('driverMatricule').value,
-      prevQuarterHours: document.getElementById('prevQuarterHours').value,
-      quarterWeeks: document.getElementById('quarterWeeks').value,
-      counters: {
-        RX: document.getElementById('cnt_RX').value,
-        NMBS: document.getElementById('cnt_NMBS').value,
-        REC: document.getElementById('cnt_REC').value,
-        WKD: document.getElementById('cnt_WKD').value,
-        ZZ: document.getElementById('cnt_ZZ').value,
-        ZB: document.getElementById('cnt_ZB').value,
-        BLH: document.getElementById('cnt_BLH').value,
-        BELH: document.getElementById('cnt_BELH').value,
-        BTH: document.getElementById('cnt_BTH').value,
-        BTULH: document.getElementById('cnt_BTULH').value
-      },
-      scheduleData: scheduleData
-    };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    const state = buildVigieStateSnapshot();
+    const serialized = JSON.stringify(state);
+    localStorage.setItem(STORAGE_KEY, serialized);
+    localStorage.setItem('rb_railvigie_state_v6', serialized);
+    if (state.year && state.month && isVigieScheduleNonEmpty(state.scheduleData)) {
+      localStorage.setItem('rb_railvigie_month_' + state.year + '_' + state.month, serialized);
+    }
+    if (typeof dbSet === 'function') {
+      dbSet('rb_railvigie_state_idb', state).catch(() => {});
+      if (state.year && state.month && isVigieScheduleNonEmpty(state.scheduleData)) {
+        dbSet('rb_railvigie_month_idb_' + state.year + '_' + state.month, state).catch(() => {});
+      }
+    }
     if (showBadge) {
       const badge = document.getElementById('saveStatusBadge');
       if (badge) {
@@ -6381,33 +6490,46 @@ function saveStateToLocal(showBadge) {
   } catch (e) {}
 }
 
+function applyVigieStateObject(s) {
+  if (!s || !Array.isArray(s.scheduleData) || s.scheduleData.length === 0) return false;
+  if (s.month) document.getElementById('monthSelect').value = String(s.month);
+  if (s.year) document.getElementById('yearInput').value = String(s.year);
+  document.getElementById('driverInput').value = s.driverInput || '';
+  document.getElementById('e500FullName').value = s.e500FullName || '';
+  document.getElementById('driverMatricule').value = s.driverMatricule || '';
+  document.getElementById('prevQuarterHours').value = s.prevQuarterHours || '';
+  document.getElementById('quarterWeeks').value = s.quarterWeeks || '13';
+
+  if (s.counters) {
+    ['RX', 'NMBS', 'REC', 'WKD', 'ZZ', 'ZB', 'BLH', 'BELH', 'BTH', 'BTULH'].forEach(c => {
+      const el = document.getElementById('cnt_' + c);
+      if (el) el.value = s.counters[c] !== undefined ? s.counters[c] : '';
+    });
+  }
+  scheduleData = s.scheduleData;
+  checkDriverMatch();
+  updateVigieCloudPathPreview();
+  renderTable();
+  recalculateAll();
+  return true;
+}
+
 function loadStateFromLocal() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return false;
-    const s = JSON.parse(raw);
-    if (!s || !Array.isArray(s.scheduleData) || s.scheduleData.length === 0) return false;
-
-    if (s.month) document.getElementById('monthSelect').value = String(s.month);
-    if (s.year) document.getElementById('yearInput').value = String(s.year);
-    document.getElementById('driverInput').value = s.driverInput || '';
-    document.getElementById('e500FullName').value = s.e500FullName || '';
-    document.getElementById('driverMatricule').value = s.driverMatricule || '';
-    document.getElementById('prevQuarterHours').value = s.prevQuarterHours || '';
-    document.getElementById('quarterWeeks').value = s.quarterWeeks || '13';
-
-    if (s.counters) {
-      ['RX', 'NMBS', 'REC', 'WKD', 'ZZ', 'ZB', 'BLH', 'BELH', 'BTH', 'BTULH'].forEach(c => {
-        const el = document.getElementById('cnt_' + c);
-        if (el) el.value = s.counters[c] !== undefined ? s.counters[c] : '';
-      });
+    for (const k of LEGACY_VIGIE_KEYS) {
+      const raw = localStorage.getItem(k);
+      if (!raw) continue;
+      try {
+        const s = JSON.parse(raw);
+        if (s && Array.isArray(s.scheduleData) && s.scheduleData.length > 0) {
+          applyVigieStateObject(s);
+          // Migrer vers la clé permanente pour ne jamais perdre les données lors de futures mises à jour
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+          return true;
+        }
+      } catch (innerErr) {}
     }
-    scheduleData = s.scheduleData;
-    checkDriverMatch();
-    updateVigieCloudPathPreview();
-    renderTable();
-    recalculateAll();
-    return true;
+    return false;
   } catch (e) {
     return false;
   }
@@ -6431,69 +6553,29 @@ const AI_PROVIDERS = {
   groq: { name: 'Groq / DeepSeek', placeholder: 'Colle ta clé API Groq (gsk_...) ici...' }
 };
 
-function toggleAiKeyVisibility() {
-  const selEl = document.getElementById('aiProviderSelect');
-  const wrapEl = document.getElementById('aiKeyFieldWrap');
-  const labelEl = document.getElementById('aiKeyLabel');
-  const inputEl = document.getElementById('geminiApiKeyInput');
-  if (!selEl || !wrapEl) return;
-  const val = (selEl.value || 'local_e500').trim();
-  if (val === 'local_e500') {
-    wrapEl.style.display = 'none';
-  } else {
-    wrapEl.style.display = 'flex';
-    const info = AI_PROVIDERS[val] || AI_PROVIDERS.openai;
-    if (labelEl) labelEl.textContent = 'Clé API — ' + info.name;
-    if (inputEl) inputEl.placeholder = info.placeholder;
-  }
+function getUnifiedRecipientEmail() {
+  const el = document.getElementById('recipient-email-input');
+  return (el && el.value ? el.value.trim() : '') || (localStorage.getItem('railsynthese_recipient_email') || '').trim();
 }
 
-function saveUserSettings() {
-  try {
-    const cloudSel = document.getElementById('cloudProviderSelect');
-    const aiSel = document.getElementById('aiProviderSelect');
-    const settings = {
-      email: (document.getElementById('userEmailInput').value || '').trim(),
-      geminiKey: (document.getElementById('geminiApiKeyInput').value || '').trim(),
-      cloudProvider: cloudSel ? cloudSel.value.trim() : 'native',
-      aiProvider: aiSel ? aiSel.value.trim() : 'local_e500'
-    };
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-    if (typeof syncSharedConfigVigieToSynthese === "function") syncSharedConfigVigieToSynthese();
-    updateVigieCloudPathPreview();
-  } catch (e) {}
+function getUnifiedCloudTarget() {
+  const el = document.getElementById('cloud-target-select');
+  return (el && el.value ? el.value.trim() : '') || (localStorage.getItem('railsynthese_cloud_target') || 'gdrive_share').trim();
 }
 
-function loadUserSettings() {
-  try {
-    const raw = localStorage.getItem(SETTINGS_KEY);
-    if (!raw) {
-      toggleAiKeyVisibility();
-      return;
-    }
-    const s = JSON.parse(raw);
-    if (s.email && document.getElementById('userEmailInput')) document.getElementById('userEmailInput').value = s.email;
-    if (s.geminiKey && document.getElementById('geminiApiKeyInput')) document.getElementById('geminiApiKeyInput').value = s.geminiKey;
-    if (s.cloudProvider && document.getElementById('cloudProviderSelect')) document.getElementById('cloudProviderSelect').value = s.cloudProvider;
-    if (s.aiProvider && document.getElementById('aiProviderSelect')) document.getElementById('aiProviderSelect').value = s.aiProvider;
-    toggleAiKeyVisibility();
-  } catch (e) {}
-}
+function toggleAiKeyVisibility() {}
+function saveUserSettings() { updateVigieCloudPathPreview(); }
+function loadUserSettings() { updateVigieCloudPathPreview(); }
 
 function updateVigieCloudPathPreview() {
-  const m = parseInt(document.getElementById('monthSelect').value || '11', 10);
-  const y = document.getElementById('yearInput').value || '2026';
+  const mEl = document.getElementById('monthSelect');
+  const yEl = document.getElementById('yearInput');
+  const m = parseInt((mEl && mEl.value) || '11', 10);
+  const y = (yEl && yEl.value) || '2026';
   const folderName = MONTH_FOLDERS[m] || '11 - Novembre';
-  const cloudSel = document.getElementById('cloudProviderSelect');
-  const providerKey = cloudSel ? cloudSel.value.trim() : 'native';
-  const providerObj = CLOUD_PROVIDERS[providerKey] || CLOUD_PROVIDERS.native;
   const pathText = 'Travail / ' + y + ' / ' + folderName;
-  const el1 = document.getElementById('cloudPathPreview');
   const el2 = document.getElementById('modalCloudPath');
-  const lbl = document.getElementById('cloudFolderLabel');
-  if (el1) el1.textContent = pathText;
-  if (el2) el2.textContent = pathText + ' (' + providerObj.name + ')';
-  if (lbl) lbl.textContent = 'Dossier Cloud cible (' + providerObj.name + ')';
+  if (el2) el2.textContent = pathText;
 }
 
 // 4. Partage QR Code & Lien 100 % vierge (Bouton QR vert du bandeau supérieur)
@@ -6690,20 +6772,28 @@ function createBlankSchedule(month, year) {
   return arr;
 }
 
-// Remise à zéro 100 % vierge (Identité, Trimestre, Compteurs et Grille des 31 jours)
-function resetBlankMonth() {
-  try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+// Remise à zéro 100 % vierge (avec confirmation si déclenchée manuellement pour ne jamais effacer un E500 par erreur)
+function resetBlankMonth(askConfirm) {
+  if (askConfirm && isVigieScheduleNonEmpty(scheduleData)) {
+    if (!confirm('Voulez-vous vraiment remettre à zéro la grille E500 de ce mois ?')) {
+      return;
+    }
+  }
+  const mEl = document.getElementById('monthSelect');
+  const yEl = document.getElementById('yearInput');
   const now = new Date();
-  const cm = now.getMonth() + 1;
-  const cy = now.getFullYear();
+  const cm = mEl && mEl.value ? parseInt(mEl.value, 10) : (now.getMonth() + 1);
+  const cy = yEl && yEl.value ? parseInt(yEl.value, 10) : now.getFullYear();
 
-  document.getElementById('monthSelect').value = String(cm);
-  document.getElementById('yearInput').value = String(cy);
-  document.getElementById('driverInput').value = '';
-  document.getElementById('e500FullName').value = '';
-  document.getElementById('driverMatricule').value = '';
-  document.getElementById('prevQuarterHours').value = '';
-  document.getElementById('quarterWeeks').value = '13';
+  if (mEl) mEl.value = String(cm);
+  if (yEl) yEl.value = String(cy);
+
+  if (askConfirm) {
+    try {
+      localStorage.removeItem('rb_railvigie_month_' + cy + '_' + cm);
+      if (typeof dbSet === 'function') dbSet('rb_railvigie_month_idb_' + cy + '_' + cm, null).catch(() => {});
+    } catch (e) {}
+  }
 
   ['RX', 'NMBS', 'REC', 'WKD', 'ZZ', 'ZB', 'BLH', 'BELH', 'BTH', 'BTULH'].forEach(c => {
     const el = document.getElementById('cnt_' + c);
@@ -6721,16 +6811,39 @@ function resetBlankMonth() {
   updateVigieCloudPathPreview();
   renderTable();
   recalculateAll();
+  if (askConfirm) saveStateToLocal(true);
 }
 
 function rebuildMonthChange() {
   const m = parseInt(document.getElementById('monthSelect').value, 10);
   const y = parseInt(document.getElementById('yearInput').value, 10);
+
+  // Si un E500 a déjà été enregistré pour ce mois/année, le recharger automatiquement !
+  try {
+    const savedMonthRaw = localStorage.getItem('rb_railvigie_month_' + y + '_' + m);
+    if (savedMonthRaw) {
+      const parsedMonth = JSON.parse(savedMonthRaw);
+      if (parsedMonth && Array.isArray(parsedMonth.scheduleData) && parsedMonth.scheduleData.length > 0) {
+        scheduleData = parsedMonth.scheduleData;
+        if (parsedMonth.counters) {
+          ['RX', 'NMBS', 'REC', 'WKD', 'ZZ', 'ZB', 'BLH', 'BELH', 'BTH', 'BTULH'].forEach(c => {
+            const el = document.getElementById('cnt_' + c);
+            if (el && parsedMonth.counters[c] !== undefined) el.value = parsedMonth.counters[c];
+          });
+        }
+        updateVigieCloudPathPreview();
+        renderTable();
+        recalculateAll();
+        return;
+      }
+    }
+  } catch (e) {}
+
   const days = getDaysInMonth(m, y);
   while (scheduleData.length < days) {
     scheduleData.push({
       day: scheduleData.length + 1,
-      code: '-', start: '', end: '', lit: 'none', start2: '', end2: '', trajetMin: 0, note: ''
+      code: '-', start: '', end: '', plannedStart: '', plannedEnd: '', plannedLong: false, lit: 'none', start2: '', end2: '', trajetMin: 0, note: ''
     });
   }
   if (scheduleData.length > days) {
@@ -7983,9 +8096,10 @@ async function handleScheduleFileImport(event) {
       return;
     }
 
-    // 2. Si le conducteur n'a pas été trouvé ou si le PDF n'est pas un E500 standard, secours Multi-IA optionnel
-    const aiProvider = (document.getElementById('aiProviderSelect').value || 'local_e500').trim();
-    const apiKey = (document.getElementById('geminiApiKeyInput').value || '').trim();
+    // 2. Si le conducteur n'a pas été trouvé ou si le PDF n'est pas un E500 standard, secours Multi-IA via la configuration unique (IA / Sauveg.)
+    const rawSynProv = typeof getActiveAIProvider === 'function' ? getActiveAIProvider() : 'gemini';
+    const aiProvider = (rawSynProv === 'anthropic') ? 'claude' : rawSynProv;
+    const apiKey = typeof getStoredAIKey === 'function' ? getStoredAIKey(rawSynProv) : '';
     if (aiProvider !== 'local_e500' && apiKey) {
       statusEl.textContent = '⏳ Analyse via ' + (AI_PROVIDERS[aiProvider] ? AI_PROVIDERS[aiProvider].name : 'IA') + '...';
       let rawText = '';
@@ -8095,79 +8209,142 @@ function openSpecificCloud(providerKey) {
 }
 
 function openSelectedCloudPortal() {
-  const cloudSel = document.getElementById('cloudProviderSelect');
-  const providerKey = cloudSel ? cloudSel.value.trim() : 'native';
-  if (providerKey === 'native') {
-    openExportModal();
-    return;
-  }
-  openSpecificCloud(providerKey);
+  const target = getUnifiedCloudTarget();
+  if (target === 'onedrive_share') return openSpecificCloud('onedrive');
+  if (target === 'icloud_share') return openSpecificCloud('icloud');
+  if (target === 'gdrive_share') return openSpecificCloud('gdrive');
+  if (target === 'dropbox_share') return openSpecificCloud('dropbox');
+  openExportModal();
 }
 
-// Bouton bleu "Cloud" : Partage Natif Multi-Cloud (OneDrive, iCloud, Google Drive, Dropbox, Mail, WhatsApp) ou ouverture du Cloud choisi
+// Bouton bleu "Cloud" pour RailVigie : utilise exactement l'option Cloud / Mail unique configurée dans l'onglet IA / Sauveg.
 async function sharePDFNativeCloudOrMail() {
   const { doc, fileName, rep, monthFolder, decSummaryText, decDetailListText } = buildAuditJsPDF();
-  const savedEmail = (document.getElementById('userEmailInput').value || '').trim();
-  const cloudPath = 'Travail / ' + rep.year + ' / ' + monthFolder;
-
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(savedEmail || cloudPath).catch(() => {});
-  }
+  const savedEmail = getUnifiedRecipientEmail();
+  const target = getUnifiedCloudTarget();
+  const webhookUrl = (localStorage.getItem('railsynthese_cloud_webhook_url') || '').trim();
+  const rootFolder = 'Travail';
+  const yearFolder = String(rep.year);
+  const folderPath = rootFolder + '/' + yearFolder + '/' + monthFolder;
+  const displayFullPath = rootFolder + ' / ' + yearFolder + ' / ' + monthFolder + ' / ' + fileName;
 
   const pdfBlob = doc.output('blob');
-  const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
 
-  if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
-    try {
+  try {
+    // Mode 1 : Passerelle 1-Clic Auto-Dossiers (si sélectionnée dans l'option unique)
+    if (target === 'webhook_auto' && webhookUrl) {
+      showStatus('Envoi 1-clic RailVigie vers ' + displayFullPath + '...');
+      const base64Pdf = await blobToBase64(pdfBlob);
+      const resp = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          fileName: fileName,
+          rootFolder: rootFolder,
+          yearFolder: yearFolder,
+          monthFolder: monthFolder,
+          folderPath: folderPath,
+          serviceDate: '01/' + String(rep.month).padStart(2, '0') + '/' + rep.year,
+          serviceNumber: 'E500_Audit',
+          driverName: rep.driverName || '',
+          recipientEmail: savedEmail,
+          pdfBase64: base64Pdf
+        })
+      });
+      if (resp.ok) {
+        showStatus('Rapport RailVigie enregistré dans ' + displayFullPath + ' !');
+        return;
+      }
+    }
+
+    // Mode 2 : Dossier Cloud synchronisé sur l'appareil
+    if (target === 'folder_picker' && window.showDirectoryPicker) {
+      const ok = await savePdfToLocalSyncedCloudFolder(pdfBlob, {
+        rootFolder: rootFolder,
+        yearFolder: yearFolder,
+        monthFolder: monthFolder,
+        fileName: fileName
+      });
+      if (ok) {
+        showStatus('Rapport RailVigie classé dans ' + displayFullPath + ' !');
+        return;
+      }
+    }
+
+    // Mode 3 : Envoi direct par Mail (selon l'option unique)
+    if (target === 'mail_share') {
+      if (savedEmail && navigator.clipboard && navigator.clipboard.writeText) {
+        try { await navigator.clipboard.writeText(savedEmail); } catch (e) {}
+      }
+      const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
+      if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+        await navigator.share({
+          title: 'RB RailVigie — ' + monthFolder + ' ' + rep.year,
+          text: 'Rapport RB RailVigie (' + rep.driverName + ').
+Découchers : ' + decSummaryText + '.' + (savedEmail ? '
+Destinataire : ' + savedEmail : ''),
+          files: [pdfFile]
+        });
+        return;
+      }
+      sendPDFBySavedEmail();
+      return;
+    }
+
+    // Mode 4 (Par défaut) : Menu Partage Cloud natif avec chemin Travail/AAAA/MM - Mois copié
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      try { await navigator.clipboard.writeText(folderPath); } catch (e) {}
+    }
+
+    const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
+    if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
       await navigator.share({
-        title: 'RB RailVigie — ' + monthFolder + ' ' + rep.year,
-        text: 'Rapport RB RailVigie (' + rep.driverName + ').\n' +
-              'Découchers : ' + decSummaryText + ' (' + decDetailListText + ').\n' +
-              'Dossier Cloud : ' + cloudPath + (savedEmail ? '\nDestinataire : ' + savedEmail : ''),
+        title: fileName,
+        text: folderPath,
         files: [pdfFile]
       });
       return;
-    } catch (e) {
-      if (e.name === 'AbortError') return;
     }
+  } catch (e) {
+    if (e && e.name === 'AbortError') return;
   }
   openExportModal();
 }
 
 function sendPDFBySavedEmail() {
   const { doc, fileName, rep, monthFolder, decSummaryText, decDetailListText } = buildAuditJsPDF();
-  const savedEmail = (document.getElementById('userEmailInput').value || '').trim();
+  const savedEmail = getUnifiedRecipientEmail();
   doc.save(fileName);
 
   const subject = encodeURIComponent('RB RailVigie — Rapport ' + monthFolder + ' ' + rep.year + ' (' + rep.driverName + ')');
   const body = encodeURIComponent(
-    'Bonjour,\n\n' +
-    'Veuillez trouver en pièce jointe le rapport PDF "' + fileName + '" (enregistré sur l\'appareil).\n\n' +
-    'Synthèse ' + monthFolder + ' ' + rep.year + ' :\n' +
-    '- Conducteur : ' + rep.driverName + '\n' +
-    '- Heures prestées : ' + formatMinToHHMM(rep.totalWorkMin) + '\n' +
-    '- Week-end (Sam / Dim) : ' + formatMinToHHMM(rep.totalSatMin) + ' / ' + formatMinToHHMM(rep.totalSunMin) + '\n' +
-    '- Repos RX / OO : ' + rep.usedCounts.RX + ' RX / ' + rep.usedCounts.OO + ' OO\n' +
-    '- Découchers (Courts <=24h / Longs >24h entre fins) : ' + decSummaryText + '\n' +
-    '- Détail Découchers : ' + decDetailListText + '\n' +
-    '- Dossier Cloud : Travail / ' + rep.year + ' / ' + monthFolder + '\n'
+    'Bonjour,
+
+' +
+    'Veuillez trouver en pièce jointe le rapport PDF "' + fileName + '" (enregistré sur l'appareil).
+
+' +
+    'Synthèse ' + monthFolder + ' ' + rep.year + ' :
+' +
+    '- Conducteur : ' + rep.driverName + '
+' +
+    '- Heures prestées : ' + formatMinToHHMM(rep.totalWorkMin) + '
+' +
+    '- Week-end (Sam / Dim) : ' + formatMinToHHMM(rep.totalSatMin) + ' / ' + formatMinToHHMM(rep.totalSunMin) + '
+' +
+    '- Repos RX / OO : ' + rep.usedCounts.RX + ' RX / ' + rep.usedCounts.OO + ' OO
+' +
+    '- Découchers : ' + decSummaryText + '
+' +
+    '- Détail Découchers : ' + decDetailListText + '
+' +
+    '- Dossier Cloud : Travail / ' + rep.year + ' / ' + monthFolder + '
+'
   );
   window.location.href = 'mailto:' + encodeURIComponent(savedEmail) + '?subject=' + subject + '&body=' + body;
 }
 
-// Au démarrage : si ?vierge=1 (QR Code collègue) -> 100 % vierge. Sinon charge la sauvegarde locale ou ouvre vierge.
-window.addEventListener('DOMContentLoaded', () => {
-  loadUserSettings();
-  if (window.location.search.includes('vierge=1')) {
-    resetBlankMonth();
-    window.history.replaceState({}, document.title, window.location.pathname);
-  } else {
-    const loaded = loadStateFromLocal();
-    if (!loaded) {
-      resetBlankMonth();
-    }
-  }
-});
+// Initialisation unifiée gérée dans le bloc principal DOMContentLoaded
 
 
 // ============================================================================
@@ -8256,20 +8433,6 @@ function syncSharedConfigSyntheseToVigie() {
       vigDriverEl.value = synDriver;
       checkDriverMatch();
     }
-
-    const synEmail = (document.getElementById('recipient-email-input') && document.getElementById('recipient-email-input').value) || localStorage.getItem('railsynthese_recipient_email') || '';
-    const vigEmailEl = document.getElementById('userEmailInput');
-    if (vigEmailEl && synEmail && vigEmailEl.value !== synEmail) {
-      vigEmailEl.value = synEmail;
-    }
-
-    const synProvider = getActiveAIProvider();
-    const synKey = getStoredAIKey(synProvider);
-    const vigKeyEl = document.getElementById('geminiApiKeyInput');
-    if (vigKeyEl && synKey && vigKeyEl.value !== synKey) {
-      vigKeyEl.value = synKey;
-    }
-
     saveStateToLocal(false);
   } catch (e) {}
   isSyncingSharedSettings = false;
@@ -8289,22 +8452,6 @@ function syncSharedConfigVigieToSynthese() {
       const hdrEl = document.getElementById('header-driver-display');
       if (hdrEl) hdrEl.textContent = vigDriver;
       localStorage.setItem('railsynthese_last_driver_name', vigDriver);
-    }
-
-    const vigEmailEl = document.getElementById('userEmailInput');
-    if (vigEmailEl && vigEmailEl.value.trim()) {
-      const em = vigEmailEl.value.trim();
-      localStorage.setItem('railsynthese_recipient_email', em);
-      const synEmailEl = document.getElementById('recipient-email-input');
-      if (synEmailEl) synEmailEl.value = em;
-    }
-
-    const vigKeyEl = document.getElementById('geminiApiKeyInput');
-    if (vigKeyEl && vigKeyEl.value.trim()) {
-      const k = vigKeyEl.value.trim();
-      setStoredAIKey(getActiveAIProvider(), k);
-      const synKeyEl = document.getElementById('gemini-key-input');
-      if (synKeyEl) synKeyEl.value = k;
     }
   } catch (e) {}
   isSyncingSharedSettings = false;
