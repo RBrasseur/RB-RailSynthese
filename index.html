@@ -24,6 +24,13 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <style>
+    html, body {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
     body {
       -webkit-tap-highlight-color: transparent;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -632,7 +639,7 @@
   </div>
 
   <!-- CONTENU PRINCIPAL RAILSYNTHESE -->
-  <main id="app-universe-synthese" class="no-print max-w-xl mx-auto px-3 pt-3 space-y-3">
+  <main id="app-universe-synthese" class="no-print w-full max-w-[1440px] mx-auto px-3 pt-3 space-y-3">
 
     <!-- ONGLET 1 : PRESTATION -->
     <div id="view-service" class="space-y-3">
@@ -1565,6 +1572,32 @@
 
   <!-- SCRIPT & LOGIQUE METIER -->
   <script>
+    // Adaptation automatique à l'écran du smartphone (même si "Version pour ordinateur" / 980px est actif dans le navigateur)
+    let activeMobileZoomFactor = 1;
+    function applySmartphoneViewportAdaptation() {
+      try {
+        document.documentElement.style.zoom = "";
+        const vpW = window.innerWidth || document.documentElement.clientWidth || 390;
+        const vpH = window.innerHeight || document.documentElement.clientHeight || 800;
+        const isTouch = ("ontouchstart" in window) || (navigator.maxTouchPoints > 0);
+        const isPortrait = vpH > vpW;
+
+        if (isTouch && isPortrait && vpW >= 680) {
+          const targetMobileWidth = 390;
+          activeMobileZoomFactor = +(vpW / targetMobileWidth).toFixed(3);
+          document.documentElement.style.zoom = String(activeMobileZoomFactor);
+          document.body.style.minHeight = Math.ceil(vpH / activeMobileZoomFactor) + "px";
+        } else {
+          activeMobileZoomFactor = 1;
+          document.documentElement.style.zoom = "";
+          document.body.style.minHeight = "";
+        }
+      } catch (e) {}
+    }
+    applySmartphoneViewportAdaptation();
+    window.addEventListener("resize", applySmartphoneViewportAdaptation);
+    window.addEventListener("orientationchange", () => setTimeout(applySmartphoneViewportAdaptation, 150));
+
     if (window.pdfjsLib) {
       pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     }
@@ -4871,6 +4904,8 @@
       const wrapper = document.getElementById("pdf-export-wrapper");
       wrapper.innerHTML = buildPrintableHTML();
       wrapper.classList.remove("hidden");
+      const prevZoom = document.documentElement.style.zoom;
+      document.documentElement.style.zoom = "";
       try {
         const pdfBlob = await html2pdf().set({
           margin: 8,
@@ -4882,6 +4917,7 @@
         return pdfBlob;
       } finally {
         wrapper.classList.add("hidden");
+        document.documentElement.style.zoom = prevZoom;
       }
     }
 
