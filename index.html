@@ -1303,9 +1303,9 @@
           <div class="sub" id="kpiServiceCount">0 prestation(s) BVTS</div>
         </div>
         <div class="kpi">
-          <div class="label">Week-end (Samedi / Dimanche)</div>
+          <div class="label">Week-end (Samedi / Dimanche &amp; JF)</div>
           <div class="val" id="kpiWeekendHours">0h00 / 0h00</div>
-          <div class="sub">100 % selon le jour de début du service</div>
+          <div class="sub">Heures r&eacute;elles Sam / Dim &amp; F&eacute;ri&eacute;s (d&eacute;coupage &agrave; 00h00)</div>
         </div>
         <div class="kpi">
           <div class="label">Heures Sup. Jour / Semaine</div>
@@ -1478,8 +1478,8 @@
           <p>Un <code>RX</code> isolé exige 38h00 (+24h par <code>RX</code> supplémentaire, soit 62h00 pour 2 <code>RX</code>). Si les 38h ne peuvent pas être atteintes, un <code>OO</code> (période blanche) doit remplacer le <code>RX</code>.</p>
         </div>
         <div class="rule-box">
-          <strong>Week-ends &amp; Heures Supplémentaires</strong>
-          <p>Début vendredi = 100% Semaine • Début samedi = 100% Samedi • Début dimanche = 100% Dimanche. Heures sup. calculées à &gt;10h/jour, &gt;46h/semaine et &gt;38h/sem sur le trimestre.</p>
+          <strong>Week-ends, Jours Fériés &amp; Heures Supplémentaires</strong>
+          <p>Découpage strict à minuit (00h00) : seules les heures réellement prestées le samedi, le dimanche ou un jour férié belge sont comptabilisées (identique à RailSynthèse). Heures sup. calculées à &gt;10h/jour, &gt;46h/semaine et &gt;38h/sem sur le trimestre.</p>
         </div>
       </div>
     </div>
@@ -7169,6 +7169,7 @@ function recalculateAll() {
       }
 
       dayWorkMin += dur1 + extraTravelMin;
+      const shiftWorkIntervals = [[startMin, startMin + dur1 + extraTravelMin]];
 
       const pStartMin = parseTimeToMin(r.plannedStart || r.start);
       const pEndMin = parseTimeToMin(r.plannedEnd || r.end);
@@ -7236,6 +7237,8 @@ function recalculateAll() {
           }
 
           dayWorkMin += (absE2 - absS2);
+          const dayBaseMin = (r.day - 1) * 1440;
+          shiftWorkIntervals.push([absS2 - dayBaseMin, absE2 - dayBaseMin]);
           activeShifts.push({
             day: r.day,
             weekKey: weekKey,
@@ -7261,26 +7264,64 @@ function recalculateAll() {
         }
       }
 
-      if (dow === 6) {
-        totalSatMin += dayWorkMin;
-        qualBadge = '<span class="badge b-info">100% Samedi</span>';
+      // Découpage strict à minuit (00h00) : seules les heures réellement prestées le samedi, le dimanche ou un jour férié belge comptent (identique à RailSynthèse)
+      let rowSatMin = 0;
+      let rowSunMin = 0;
+      let rowHolMin = 0;
+
+      shiftWorkIntervals.forEach(([ivStart, ivEnd]) => {
+        if (ivStart === null || ivEnd === null || ivEnd <= ivStart) return;
+        const firstDayOffset = Math.floor(ivStart / 1440);
+        const lastDayOffset = Math.floor((ivEnd - 1) / 1440);
+        for (let k = firstDayOffset; k <= lastDayOffset; k++) {
+          const segStart = Math.max(ivStart, k * 1440);
+          const segEnd = Math.min(ivEnd, (k + 1) * 1440);
+          const segMin = Math.max(0, segEnd - segStart);
+          if (segMin <= 0) continue;
+          const dK = new Date(y, m - 1, r.day + k, 12, 0, 0);
+          const catK = getDayRateCategory(dK, false);
+          if (catK.category === 'saturday') {
+            rowSatMin += segMin;
+          } else if (catK.category === 'sunday') {
+            rowSunMin += segMin;
+            if (catK.isHoliday) rowHolMin += segMin;
+          }
+        }
+      });
+
+      totalSatMin += rowSatMin;
+      totalSunMin += rowSunMin;
+
+      const rowWeekMin = Math.max(0, dayWorkMin - rowSatMin - rowSunMin);
+      const shiftLabelStr = r.start + '-' + r.end + (r.lit === '2' && r.start2 && r.end2 ? ' & ' + r.start2 + '-' + r.end2 : '');
+
+      if (rowSatMin > 0 && rowSunMin > 0) {
+        const sunLabel = rowHolMin > 0 ? 'Dim/JF' : 'Dim';
+        qualBadge = '<span class="badge b-info">Sam ' + formatMinToHHMM(rowSatMin) + ' / ' + sunLabel + ' ' + formatMinToHHMM(rowSunMin) + '</span>';
         traceabilityEvents.push({
           type: 'WEEKEND',
           day: r.day,
-          label: 'Jour ' + r.day + ' (Sam) : Heures Samedi (' + formatMinToHHMM(dayWorkMin) + ')',
-          detail: 'Prestation (' + r.code + ') débutée le samedi à ' + r.start + ' (fin ' + r.end + ') ➔ 100 % comptabilisé en Samedi.'
+          label: 'Jour ' + r.day + ' (' + DAY_NAMES[dow] + ') : Sam ' + formatMinToHHMM(rowSatMin) + ' + ' + sunLabel + ' ' + formatMinToHHMM(rowSunMin),
+          detail: 'Prestation (' + r.code + ' ' + shiftLabelStr + ') découpée à 00h00 : ' + formatMinToHHMM(rowSatMin) + ' réelles le samedi et ' + formatMinToHHMM(rowSunMin) + ' en dimanche / jour férié.'
         });
-      } else if (dow === 0) {
-        totalSunMin += dayWorkMin;
-        qualBadge = '<span class="badge b-info">100% Dimanche</span>';
+      } else if (rowSatMin > 0) {
+        qualBadge = '<span class="badge b-info">Sam ' + formatMinToHHMM(rowSatMin) + (rowWeekMin > 0 ? ' / Sem ' + formatMinToHHMM(rowWeekMin) : '') + '</span>';
         traceabilityEvents.push({
           type: 'WEEKEND',
           day: r.day,
-          label: 'Jour ' + r.day + ' (Dim) : Heures Dimanche (' + formatMinToHHMM(dayWorkMin) + ')',
-          detail: 'Prestation (' + r.code + ') débutée le dimanche à ' + r.start + ' (fin ' + r.end + ') ➔ 100 % comptabilisé en Dimanche.'
+          label: 'Jour ' + r.day + ' (' + DAY_NAMES[dow] + ') : Heures Samedi (' + formatMinToHHMM(rowSatMin) + ')',
+          detail: 'Prestation (' + r.code + ' ' + shiftLabelStr + ') : ' + formatMinToHHMM(rowSatMin) + ' réellement prestées le samedi (découpage à 00h00' + (rowWeekMin > 0 ? ', ' + formatMinToHHMM(rowWeekMin) + ' en semaine' : '') + ').'
         });
-      } else if (dow === 5 && endMin < startMin) {
-        qualBadge = '<span class="badge b-ok">Ven➔Sam (100% Sem)</span>';
+      } else if (rowSunMin > 0) {
+        const sunTag = (rowHolMin > 0 && rowHolMin === rowSunMin) ? 'Férié' : (rowHolMin > 0 ? 'Dim/JF' : 'Dim');
+        const sunLongLabel = (sunTag === 'Férié') ? 'Jour férié' : (sunTag === 'Dim/JF' ? 'Dimanche / Férié' : 'Dimanche');
+        qualBadge = '<span class="badge b-info">' + sunTag + ' ' + formatMinToHHMM(rowSunMin) + (rowWeekMin > 0 ? ' / Sem ' + formatMinToHHMM(rowWeekMin) : '') + '</span>';
+        traceabilityEvents.push({
+          type: 'WEEKEND',
+          day: r.day,
+          label: 'Jour ' + r.day + ' (' + DAY_NAMES[dow] + ') : Heures ' + sunLongLabel + ' (' + formatMinToHHMM(rowSunMin) + ')',
+          detail: 'Prestation (' + r.code + ' ' + shiftLabelStr + ') : ' + formatMinToHHMM(rowSunMin) + ' réellement prestées en ' + sunLongLabel.toLowerCase() + ' (découpage à 00h00' + (rowWeekMin > 0 ? ', ' + formatMinToHHMM(rowWeekMin) + ' en semaine' : '') + ').'
+        });
       } else {
         qualBadge = '<span class="badge b-ok">' + (r.code !== 'BVTS' ? r.code + ' (Sem)' : 'Semaine') + '</span>';
       }
@@ -8328,7 +8369,7 @@ function buildAuditJsPDF() {
     head: [['Indicateur Temps & Week-end', 'Valeur', 'Indicateur Repos, Découchers & Compteurs', 'Valeur']],
     body: [
       ['Heures Prestées (Mois)', formatMinToHHMM(rep.totalWorkMin), 'Jours RX / OO • Série max travaillée', rep.usedCounts.RX + ' RX / ' + rep.usedCounts.OO + ' OO (Max ' + (rep.maxConsecutiveWorkDays || 0) + '/7 j. conséc.)'],
-      ['Heures Samedi / Dimanche', formatMinToHHMM(rep.totalSatMin) + ' / ' + formatMinToHHMM(rep.totalSunMin), 'Découchers (Courts <=24h / Longs >24h)', decSummaryText],
+      ['Heures Samedi / Dimanche & JF (réelles)', formatMinToHHMM(rep.totalSatMin) + ' / ' + formatMinToHHMM(rep.totalSunMin), 'Découchers (Courts <=24h / Longs >24h)', decSummaryText],
       ['Heures Sup. Jour (>10h) / Semaine (>46h)', formatMinToHHMM(rep.totalDailyOTMin) + ' / ' + formatMinToHHMM(rep.totalWeeklyOTMin), 'Détail des Découchers (Courts vs Longs)', decDetailListText],
       ['Heures Sup. Trimestrielles (>38h/sem)', formatMinToHHMM(rep.totalQuarterOTMin), 'Repos réduits (<14h) / Anormaux (<=12h) / Anomalies', rep.reducedRestCount + ' réd. / ' + rep.abnormalRest12Count + ' <=12h / ' + rep.restAuditEvents.filter(e => e.level === 'err').length + ' anom.']
     ],
