@@ -6461,7 +6461,7 @@ const LEGACY_VIGIE_KEYS = [
 ];
 const SETTINGS_KEY = 'rb_railvigie_settings_v6';
 const DAY_NAMES = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
-const CODES = ['BVTS', 'SIM', 'CTFT', 'CTFP', 'RX', 'OO', 'ELH', 'REC', 'WKD', 'ZZ', 'ZB', 'BLH', 'BELH', 'BTH', 'BTULH', 'NMBS', '-'];
+const CODES = ['BVTS', 'SIM', 'CTFT', 'CTFP', 'LST', 'BMA', 'LAN', 'RX', 'OO', 'ELH', 'LH', 'MAL', 'REC', 'WKD', 'ZZ', 'ZB', 'BLH', 'BELH', 'BTH', 'BTULH', 'NMBS', '-'];
 const MONTH_FOLDERS = {
   1: '01 - Janvier',
   2: '02 - Févier',
@@ -6517,7 +6517,7 @@ function applyRowFilter() {
     if (!tr) return;
     const isAnom = tr.classList.contains('row-anomaly');
     let show = true;
-    if (currentScheduleFilter === 'bvts') show = ['BVTS', 'SIM', 'CTFT', 'CTFP'].includes(r.code);
+    if (currentScheduleFilter === 'bvts') show = isWorkedPrestationRow(r) || isWorkedCode(r.code);
     else if (currentScheduleFilter === 'rxoo') show = (r.code === 'RX' || r.code === 'OO');
     else if (currentScheduleFilter === 'anom') show = isAnom;
     tr.classList.toggle('hidden-row', !show);
@@ -7035,12 +7035,15 @@ function renderTable() {
   tbody.innerHTML = scheduleData.map((r, idx) => {
     const dow = getDayOfWeek(y, m, r.day);
     const dayLabel = String(r.day).padStart(2, '0') + ' (' + DAY_NAMES[dow] + ')';
-    const rowClass = ['BVTS', 'SIM', 'CTFT', 'CTFP'].includes(r.code) ? 'row-bvts' : (r.code === 'RX' ? 'row-rx' : (r.code === 'OO' ? 'row-oo' : ''));
-    const opts = CODES.map(c => '<option value="' + c + '" ' + (r.code === c ? 'selected' : '') + '>' + c + '</option>').join('');
+    const codeNorm = String(r.code || '-').trim();
+    const rowClass = isWorkedCode(codeNorm) ? 'row-bvts' : (codeNorm === 'RX' ? 'row-rx' : (codeNorm === 'OO' ? 'row-oo' : ''));
+    const selectCodes = (codeNorm && !CODES.includes(codeNorm)) ? [codeNorm].concat(CODES) : CODES;
+    const opts = selectCodes.map(c => '<option value="' + escapeHtml(c) + '" ' + (codeNorm === c ? 'selected' : '') + '>' + escapeHtml(c) + '</option>').join('') +
+      '<option value="__CUSTOM_CODE__">+ Autre code...</option>';
 
     return '<tr id="row-' + r.day + '" class="' + rowClass + '">' +
       '<td style="font-weight:700;">' + dayLabel + '</td>' +
-      '<td><select onchange="updateCell(' + idx + ', \'code\', this.value)">' + opts + '</select></td>' +
+      '<td><select onchange="handleVigieCodeChange(' + idx + ', this.value)">' + opts + '</select></td>' +
       '<td><input class="time-input" type="text" value="' + (r.start || '') + '" placeholder="HH:MM" onchange="updateCell(' + idx + ', \'start\', this.value)"></td>' +
       '<td><input class="time-input" type="text" value="' + (r.end || '') + '" placeholder="HH:MM" onchange="updateCell(' + idx + ', \'end\', this.value)"></td>' +
       '<td><select onchange="updateCell(' + idx + ', \'lit\', this.value)">' +
@@ -7062,6 +7065,20 @@ function renderTable() {
   }).join('');
 }
 
+function handleVigieCodeChange(idx, val) {
+  if (val === '__CUSTOM_CODE__') {
+    const custom = prompt('Entre le code de la prestation (ex: 853, 104, BMA, LST...) :', scheduleData[idx].code !== '-' ? scheduleData[idx].code : '');
+    if (custom && custom.trim()) {
+      scheduleData[idx].code = custom.trim().toUpperCase();
+    }
+    renderTable();
+    recalculateAll();
+    saveStateToLocal(true);
+    return;
+  }
+  updateCell(idx, 'code', val);
+}
+
 function updateCell(idx, field, val) {
   if ((field === 'start' || field === 'end') && !scheduleData[idx].plannedStart && !scheduleData[idx].plannedEnd) {
     scheduleData[idx].plannedStart = scheduleData[idx].start || val;
@@ -7070,7 +7087,7 @@ function updateCell(idx, field, val) {
   scheduleData[idx][field] = val;
   if (field === 'code') {
     const tr = document.getElementById('row-' + scheduleData[idx].day);
-    if (tr) tr.className = ['BVTS', 'SIM', 'CTFT', 'CTFP'].includes(val) ? 'row-bvts' : (val === 'RX' ? 'row-rx' : (val === 'OO' ? 'row-oo' : ''));
+    if (tr) tr.className = isWorkedCode(val) ? 'row-bvts' : (val === 'RX' ? 'row-rx' : (val === 'OO' ? 'row-oo' : ''));
   }
   recalculateAll();
   saveStateToLocal(true);
@@ -7090,17 +7107,22 @@ function updateSecondShift(idx, val) {
 }
 
 // 8. Moteur de Calcul Réglementaire CP 226 (avec distinction Découcher Court <=24h vs Long >24h entre les 2 fins de prestations)
-const REST_OR_LEAVE_CODES = ['RX', 'OO', 'ELH', 'REC', 'WKD', 'ZZ', 'ZB', 'BLH', 'BELH', 'BTH', 'BTULH', 'NMBS', '-'];
-const WORK_PRESTA_CODES = ['BVTS', 'SIM', 'CTFT', 'CTFP'];
+const REST_OR_LEAVE_CODES = ['RX', 'OO', 'ELH', 'LH', 'MAL', 'REC', 'WKD', 'ZZ', 'ZB', 'BLH', 'BELH', 'BTH', 'BTULH', 'NMBS', '-'];
+const WORK_PRESTA_CODES = ['BVTS', 'SIM', 'CTFT', 'CTFP', 'LST', 'BMA', 'LAN'];
+
+function isWorkedCode(code) {
+  const c = String(code || '').trim().toUpperCase();
+  return Boolean(c && c !== '-' && !REST_OR_LEAVE_CODES.includes(c));
+}
 
 function isWorkedPrestationRow(r) {
   if (!r) return false;
   const sMin = parseTimeToMin(r.start);
   const eMin = parseTimeToMin(r.end);
-  if (sMin !== null && eMin !== null && !REST_OR_LEAVE_CODES.includes(r.code)) {
+  if (sMin !== null && eMin !== null && isWorkedCode(r.code)) {
     return true;
   }
-  return WORK_PRESTA_CODES.includes(r.code) && sMin !== null && eMin !== null;
+  return WORK_PRESTA_CODES.includes(String(r.code || '').trim().toUpperCase()) && sMin !== null && eMin !== null;
 }
 
 function isRetourLit(litVal) {
@@ -7323,7 +7345,7 @@ function recalculateAll() {
           detail: 'Prestation (' + r.code + ' ' + shiftLabelStr + ') : ' + formatMinToHHMM(rowSunMin) + ' réellement prestées en ' + sunLongLabel.toLowerCase() + ' (découpage à 00h00' + (rowWeekMin > 0 ? ', ' + formatMinToHHMM(rowWeekMin) + ' en semaine' : '') + ').'
         });
       } else {
-        qualBadge = '<span class="badge b-ok">' + (r.code !== 'BVTS' ? r.code + ' (Sem)' : 'Semaine') + '</span>';
+        qualBadge = '<span class="badge b-ok">' + (r.code !== 'BVTS' ? escapeHtml(r.code) + ' (Sem)' : 'Semaine') + '</span>';
       }
 
       if (dayWorkMin > 600) {
@@ -7346,7 +7368,7 @@ function recalculateAll() {
     }
 
     // Contrôle de la règle des 7 jours maximum de travail consécutifs (un RX obligatoire au moins tous les 8 jours)
-    const isWorkedDayForStreak = isWorkedPrestationRow(r) || WORK_PRESTA_CODES.includes(r.code);
+    const isWorkedDayForStreak = isWorkedPrestationRow(r) || isWorkedCode(r.code);
     if (isWorkedDayForStreak) {
       if (consecutiveWorkDays === 0) consecutiveStartDay = r.day;
       consecutiveWorkDays++;
@@ -7886,7 +7908,7 @@ function normalizePdfPageItems(tcItems) {
 function expandDayTokensAtX(xStart, textStr, stepX) {
   const rawParts = textStr.trim().split(/\s+/);
   const tokens = [];
-  const codePattern = /(BVTS|BYTS|CTFT|CTFP|SIM|BMA|LAN|LST|MAL|ELH|REC|WKD|BELH|BTULH|NMBS|BLH|BTH|RX|OO|00|ZZ|ZB|-)/g;
+  const codePattern = /(BVTS|BYTS|CTFT|CTFP|SIM|BMA|LAN|LST|MAL|ELH|LH|REC|WKD|BELH|BTULH|NMBS|BLH|BTH|RX|OO|00|ZZ|ZB|\d{2,5}[A-Z]?|-)/g;
   const timePattern = /\d{1,2}[:.]\d{2}|-/g;
 
   for (let i = 0; i < rawParts.length; i++) {
@@ -8134,9 +8156,10 @@ async function parseE500PdfDeterministic(pdfDoc, requiredTokens, statusEl) {
             litVal = bedDaysSet.has(d - 1) ? 'retour' : 'aller';
           }
 
+          const resolvedCode = (rawCode && rawCode !== '-') ? rawCode : ((startStr && endStr) ? 'BVTS' : '-');
           daysResult.push({
             day: d,
-            code: CODES.includes(rawCode) ? rawCode : ((startStr && endStr) ? 'BVTS' : '-'),
+            code: resolvedCode,
             start: startStr,
             end: endStr,
             lit: litVal,
@@ -8217,7 +8240,7 @@ async function callMultiAiFallback(rawText, provider, apiKey, requiredTokens) {
     throw new Error('Conducteur non détecté dans la grille E500. Vérifie le nom saisi dans le bloc 1.');
   }
   const targetName = requiredTokens.join(' ');
-  const sysPrompt = 'Extrais les horaires mensuels (jours 1 à 31) et les compteurs (RX, NMBS, REC, WKD, ZZ, ZB, BLH, BELH, BTH, BTULH) uniquement pour le conducteur "' + targetName + '". Renvoie uniquement un objet JSON valide de la forme {"fullName":"","matricule":"","counters":{},"days":[{"day":1,"code":"BVTS","start":"08:00","end":"15:36","lit":"none"}]}.';
+  const sysPrompt = 'Extrais les horaires mensuels (jours 1 à 31) et les compteurs (RX, NMBS, REC, WKD, ZZ, ZB, BLH, BELH, BTH, BTULH) uniquement pour le conducteur "' + targetName + '". Conserve exactement le code ou numéro de prestation inscrit sur le planning (ex: 853, CTFT, SIM, BVTS, LST, BMA, RX, OO) sans le remplacer par BVTS. Renvoie uniquement un objet JSON valide de la forme {"fullName":"","matricule":"","counters":{},"days":[{"day":1,"code":"853","start":"22:15","end":"08:00","lit":"none"}]}.';
 
   let resp, json, contentText = '';
   if (provider === 'openai' || provider === 'mistral' || provider === 'groq') {
@@ -8711,8 +8734,12 @@ function syncPrestationFromSyntheseToVigie() {
             row.end = formatClockFromMinutes(bounds.realEndMinContinuous);
           }
 
-          if (!WORK_PRESTA_CODES.includes(row.code)) {
-            row.code = 'BVTS';
+          const rawSynSrv = String(appState.serviceNumber || '').trim().toUpperCase();
+          const shortSynCode = rawSynSrv.replace(/^(?:BCHA|BANT|STHL|SLAL)[\s\-]*/i, '').trim() || rawSynSrv;
+          if (!isWorkedCode(row.code)) {
+            row.code = shortSynCode || 'BVTS';
+          } else if (row.code === 'BVTS' && shortSynCode) {
+            row.code = shortSynCode;
           }
 
           // Synchroniser le mode Découcher et les trajets hôtel
@@ -8725,7 +8752,7 @@ function syncPrestationFromSyntheseToVigie() {
             }
             row.trajetMin = parseInt(appState.decoucherTravelMin || '0', 10) || 0;
             const prevRow = scheduleData.find(r => r.day === dDay - 1);
-            if (prevRow && WORK_PRESTA_CODES.includes(prevRow.code) && prevRow.lit === 'none') {
+            if (prevRow && (isWorkedPrestationRow(prevRow) || isWorkedCode(prevRow.code)) && prevRow.lit === 'none') {
               prevRow.lit = 'aller';
             }
           } else if (appState.decoucherMode === 'lit_2_meme_jour') {
