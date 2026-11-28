@@ -2911,7 +2911,6 @@
         const hasNote = Boolean(act.notesAndDelays && act.notesAndDelays.trim() !== "");
         const hasReal = Boolean((act.realStartTime && act.realStartTime.trim() !== "") || (act.realEndTime && act.realEndTime.trim() !== ""));
         const showLocos = taskSupportsLocos(act.type);
-        const locosLabel = formatActivityLocosLabel(act);
 
         const wrapper = document.createElement("div");
         wrapper.className = isExpanded ? "bg-slate-900/95" : (isLeg ? "bg-amber-500/5" : "bg-slate-900");
@@ -2940,11 +2939,10 @@
 
         wrapper.innerHTML =
           '<div onclick="toggleActivityExpand(' + idx + ')" class="px-3 py-2 flex items-center justify-between gap-2 cursor-pointer active:bg-slate-800/80 select-none">' +
-            '<div class="flex items-center gap-1.5 min-w-0">' +
+            '<div class="flex items-center gap-2 min-w-0">' +
               '<span id="act-header-title-' + idx + '" class="font-mono text-xs font-bold truncate ' + (isLeg ? "text-amber-400" : "text-emerald-400") + '">' +
                 escapeHtml(formattedLine) +
               '</span>' +
-              '<span id="act-loco-badge-' + idx + '" class="' + (locosLabel ? "inline-block" : "hidden") + ' px-1.5 py-0.2 rounded bg-teal-500/20 border border-teal-500/40 text-[9px] font-mono font-bold text-teal-300 truncate max-w-[130px] shrink-0">' + (locosLabel ? "Loco: " + escapeHtml(locosLabel) : "") + '</span>' +
               '<span id="act-note-badge-' + idx + '" class="' + (hasNote ? "inline-block" : "hidden") + ' px-1.5 py-0.2 rounded bg-amber-500/20 border border-amber-500/40 text-[9px] font-bold text-amber-300 shrink-0">Note</span>' +
             '</div>' +
             '<div class="flex items-center gap-1.5 shrink-0 font-mono text-xs">' +
@@ -3032,7 +3030,6 @@
       const titleEl = document.getElementById("act-header-title-" + idx);
       const timesEl = document.getElementById("act-header-times-" + idx);
       const badgeEl = document.getElementById("act-note-badge-" + idx);
-      const locoBadgeEl = document.getElementById("act-loco-badge-" + idx);
 
       if (titleEl) {
         titleEl.textContent = ((act.trainNo ? act.trainNo + " " : "") + act.type + " " + act.location).trim();
@@ -3044,11 +3041,6 @@
           ? '<span class="text-sky-400 font-semibold ml-1.5">(' + escapeHtml(act.realStartTime || "--:--") + (act.type !== "LEASE" ? "&rarr;" + escapeHtml(act.realEndTime || "--:--") : "") + ')</span>'
           : "";
         timesEl.innerHTML = planned + real;
-      }
-      if (locoBadgeEl) {
-        const locosLabel = formatActivityLocosLabel(act);
-        locoBadgeEl.textContent = locosLabel ? ("Loco: " + locosLabel) : "";
-        locoBadgeEl.className = (locosLabel ? "inline-block" : "hidden") + " px-1.5 py-0.2 rounded bg-teal-500/20 border border-teal-500/40 text-[9px] font-mono font-bold text-teal-300 truncate max-w-[130px] shrink-0";
       }
       if (badgeEl) {
         const hasNote = Boolean(act.notesAndDelays && act.notesAndDelays.trim() !== "");
