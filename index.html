@@ -1750,9 +1750,34 @@
     const BASE_OP_TYPES = [
       "LEASE", "CTB", "TAXI", "VOETPIED", "AFREL", "AFREL DP", "TRANSFER", "FP", "RP",
       "PLAT", "KOPAC", "REMFREA", "REMFREC", "XKOPAC", "XREMFREC", "LEG", "xONTDC",
-      "BEVAP", "BUNFAI1", "LOC KOPAC", "LOC ONTDC", "VEDE", "PASS", "PAUZE", "END",
+      "BEVAP", "LOC KOPAC", "LOC ONTDC", "VEDE", "PASS", "PAUZE", "END",
       "UITDEC", "DECUIT"
     ];
+
+    const LOCO_TASK_TYPES = ["TRANSFER", "FP", "RP", "PLAT", "LEG", "BEVAP"];
+
+    function taskSupportsLocos(typeStr) {
+      return LOCO_TASK_TYPES.includes(String(typeStr || "").trim().toUpperCase());
+    }
+
+    function formatActivityLocosLabel(act) {
+      if (!act || !taskSupportsLocos(act.type)) return "";
+      const parts = [act.loco1, act.loco2].map(v => String(v || "").trim()).filter(Boolean);
+      return parts.join(" / ");
+    }
+
+    function sanitizeOpTypesList(list) {
+      const cleaned = [];
+      (Array.isArray(list) ? list : []).forEach(t => {
+        const val = String(t || "").trim();
+        if (!val || val.toUpperCase() === "BUNFAI1") return;
+        if (!cleaned.includes(val)) cleaned.push(val);
+      });
+      BASE_OP_TYPES.forEach(op => {
+        if (!cleaned.includes(op)) cleaned.push(op);
+      });
+      return cleaned;
+    }
 
     const REBU_COUNTRIES = ["BE", "LU", "FR", "CH", "DE", "NL"];
 
@@ -1782,6 +1807,8 @@
       secondPrestationDuration: "",
       serviceSheetImages: [],
       serviceSheetName: "",
+      serviceSheetAddedOrder: null,
+      docSequenceCounter: 0,
       pdfIncludeServiceDoc: false,
       pdfIncludeRebuDoc: false,
       pdfIncludeOtherDocs: true,
@@ -1796,6 +1823,25 @@
     let expandedActivityIdx = null;
     let editingStationOriginalCode = null;
     let currentPasteTarget = "service";
+
+    function getNextDocOrder() {
+      let maxOrd = Number(appState.docSequenceCounter) || 0;
+      if (typeof appState.serviceSheetAddedOrder === "number" && appState.serviceSheetAddedOrder > maxOrd) {
+        maxOrd = appState.serviceSheetAddedOrder;
+      }
+      if (Array.isArray(appState.trains)) {
+        appState.trains.forEach(t => {
+          if (t && typeof t.addedOrder === "number" && t.addedOrder > maxOrd) maxOrd = t.addedOrder;
+        });
+      }
+      if (Array.isArray(appState.otherDocs)) {
+        appState.otherDocs.forEach(d => {
+          if (d && typeof d.addedOrder === "number" && d.addedOrder > maxOrd) maxOrd = d.addedOrder;
+        });
+      }
+      appState.docSequenceCounter = maxOrd + 1;
+      return appState.docSequenceCounter;
+    }
 
     function normStr(s) {
       return String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[-_]/g, " ").replace(/\s+/g, " ").trim();
@@ -2007,17 +2053,15 @@
         }
 
         if (savedState && typeof savedState === "object") {
-          const mergedOpTypes = Array.isArray(savedState.opTypes) && savedState.opTypes.length > 0
+          const rawMergedOps = Array.isArray(savedState.opTypes) && savedState.opTypes.length > 0
             ? [...savedState.opTypes]
             : [...BASE_OP_TYPES];
-          BASE_OP_TYPES.forEach(op => {
-            if (!mergedOpTypes.includes(op)) mergedOpTypes.push(op);
-          });
           if (Array.isArray(savedState.activities)) {
             savedState.activities.forEach(a => {
-              if (a.type && !mergedOpTypes.includes(a.type)) mergedOpTypes.push(a.type);
+              if (a.type) rawMergedOps.push(a.type);
             });
           }
+          const mergedOpTypes = sanitizeOpTypesList(rawMergedOps);
 
           const loadedStations = (savedState.stations && Object.keys(savedState.stations).length > 0)
             ? { ...savedState.stations }
@@ -2074,6 +2118,8 @@
     function getActiveOpTypes() {
       if (!Array.isArray(appState.opTypes) || appState.opTypes.length === 0) {
         appState.opTypes = [...BASE_OP_TYPES];
+      } else if (appState.opTypes.some(t => String(t || "").toUpperCase() === "BUNFAI1")) {
+        appState.opTypes = sanitizeOpTypesList(appState.opTypes);
       }
       return appState.opTypes;
     }
@@ -2307,8 +2353,8 @@
       } else if (currentPasteTarget === "rebu") {
         switchMobileTab("trains");
         const localData = parseRebuTextLocally(text);
-        const newTrain = createTrainObject(localData);
-        appState.trains.unshift(newTrain);
+        const newTrain = createTrainObject({ ...localData, addedOrder: getNextDocOrder() });
+        appState.trains.push(newTrain);
         renderTrainBulletins();
         await saveState();
         showStatus("Texte du REBU coll\u00e9 et analys\u00e9 !");
@@ -2326,6 +2372,7 @@
         lines.forEach((l, i) => ctx.fillText(l.slice(0, 95), 30, 45 + i * 22));
         appState.otherDocs.push({
           id: "doc_" + Date.now(),
+          addedOrder: getNextDocOrder(),
           title: "Note / Document coll\u00e9",
           notes: text,
           imageDataUrl: canvas.toDataURL("image/jpeg", 0.85),
@@ -2505,6 +2552,8 @@
         secondPrestationDuration: "",
         serviceSheetImages: [],
         serviceSheetName: "",
+        serviceSheetAddedOrder: null,
+        docSequenceCounter: 0,
         pdfIncludeServiceDoc: Boolean(appState.pdfIncludeServiceDoc),
         pdfIncludeRebuDoc: Boolean(appState.pdfIncludeRebuDoc),
         pdfIncludeOtherDocs: appState.pdfIncludeOtherDocs !== undefined ? Boolean(appState.pdfIncludeOtherDocs) : true,
@@ -2818,6 +2867,8 @@
           prev.location = (pParts[0] || prev.location) + " - " + (cParts[cParts.length - 1] || act.location);
           prev.endTime = act.endTime || prev.endTime;
           prev.realEndTime = act.realEndTime || prev.realEndTime;
+          prev.loco1 = prev.loco1 || act.loco1 || "";
+          prev.loco2 = prev.loco2 || act.loco2 || "";
           if (act.notesAndDelays) {
             prev.notesAndDelays = prev.notesAndDelays
               ? prev.notesAndDelays + "\n" + act.notesAndDelays
@@ -2851,7 +2902,7 @@
       const currentOpTypes = getActiveOpTypes();
 
       appState.activities.forEach((act, idx) => {
-        if (act.type && !currentOpTypes.includes(act.type)) {
+        if (act.type && String(act.type).toUpperCase() !== "BUNFAI1" && !currentOpTypes.includes(act.type)) {
           currentOpTypes.push(act.type);
         }
 
@@ -2859,6 +2910,8 @@
         const isExpanded = (expandedActivityIdx === idx);
         const hasNote = Boolean(act.notesAndDelays && act.notesAndDelays.trim() !== "");
         const hasReal = Boolean((act.realStartTime && act.realStartTime.trim() !== "") || (act.realEndTime && act.realEndTime.trim() !== ""));
+        const showLocos = taskSupportsLocos(act.type);
+        const locosLabel = formatActivityLocosLabel(act);
 
         const wrapper = document.createElement("div");
         wrapper.className = isExpanded ? "bg-slate-900/95" : (isLeg ? "bg-amber-500/5" : "bg-slate-900");
@@ -2872,12 +2925,26 @@
         const optionsHtml = currentOpTypes.map(op => '<option value="' + escapeHtml(op) + '" ' + (act.type === op ? "selected" : "") + '>' + escapeHtml(op) + '</option>').join("") +
           '<option value="__ADD_NEW_TASK__">+ Ajouter nouvelle t&acirc;che...</option>';
 
+        const locosInputsHtml = showLocos
+          ? '<div class="grid grid-cols-2 gap-2">' +
+              '<div>' +
+                '<label class="block text-[10px] font-bold uppercase text-teal-300 mb-0.5">N&deg; Loco 1</label>' +
+                '<input type="text" value="' + escapeHtml(act.loco1 || "") + '" placeholder="Ex: 1312 / 186 214" oninput="updateActivity(' + idx + ', \'loco1\', this.value)" class="w-full bg-slate-900 border border-teal-500/50 focus:border-teal-400 rounded-lg px-2.5 py-1.5 text-xs font-mono font-bold text-teal-200 uppercase focus:outline-none" />' +
+              '</div>' +
+              '<div>' +
+                '<label class="block text-[10px] font-bold uppercase text-teal-300 mb-0.5">N&deg; Loco 2</label>' +
+                '<input type="text" value="' + escapeHtml(act.loco2 || "") + '" placeholder="Ex: 1345 (si 2e loco)" oninput="updateActivity(' + idx + ', \'loco2\', this.value)" class="w-full bg-slate-900 border border-teal-500/50 focus:border-teal-400 rounded-lg px-2.5 py-1.5 text-xs font-mono font-bold text-teal-200 uppercase focus:outline-none" />' +
+              '</div>' +
+            '</div>'
+          : "";
+
         wrapper.innerHTML =
           '<div onclick="toggleActivityExpand(' + idx + ')" class="px-3 py-2 flex items-center justify-between gap-2 cursor-pointer active:bg-slate-800/80 select-none">' +
-            '<div class="flex items-center gap-2 min-w-0">' +
+            '<div class="flex items-center gap-1.5 min-w-0">' +
               '<span id="act-header-title-' + idx + '" class="font-mono text-xs font-bold truncate ' + (isLeg ? "text-amber-400" : "text-emerald-400") + '">' +
                 escapeHtml(formattedLine) +
               '</span>' +
+              '<span id="act-loco-badge-' + idx + '" class="' + (locosLabel ? "inline-block" : "hidden") + ' px-1.5 py-0.2 rounded bg-teal-500/20 border border-teal-500/40 text-[9px] font-mono font-bold text-teal-300 truncate max-w-[130px] shrink-0">' + (locosLabel ? "Loco: " + escapeHtml(locosLabel) : "") + '</span>' +
               '<span id="act-note-badge-' + idx + '" class="' + (hasNote ? "inline-block" : "hidden") + ' px-1.5 py-0.2 rounded bg-amber-500/20 border border-amber-500/40 text-[9px] font-bold text-amber-300 shrink-0">Note</span>' +
             '</div>' +
             '<div class="flex items-center gap-1.5 shrink-0 font-mono text-xs">' +
@@ -2888,9 +2955,10 @@
 
           (isExpanded ? (
             '<div class="px-3 pb-3 pt-1.5 bg-slate-950/90 border-t border-slate-800/80 space-y-2.5">' +
+              locosInputsHtml +
               '<div>' +
                 '<label class="block text-[10px] font-bold uppercase text-amber-400 mb-1">Notes &amp; Retards (Multi-lignes) :</label>' +
-                '<textarea id="act-note-input-' + idx + '" rows="2" placeholder="Ex: Loco HLE 1312&#10;Retard +14 min (attente sillon)..." oninput="autoResizeTextarea(this); updateActivity(' + idx + ', \'notesAndDelays\', this.value)" class="w-full bg-slate-900 border border-amber-500/40 focus:border-amber-400 rounded-xl px-3 py-2 text-xs text-amber-100 placeholder-slate-500 focus:outline-none leading-relaxed">' + escapeHtml(act.notesAndDelays || "") + '</textarea>' +
+                '<textarea id="act-note-input-' + idx + '" rows="2" placeholder="Ex: Retard +14 min (attente sillon)..." oninput="autoResizeTextarea(this); updateActivity(' + idx + ', \'notesAndDelays\', this.value)" class="w-full bg-slate-900 border border-amber-500/40 focus:border-amber-400 rounded-xl px-3 py-2 text-xs text-amber-100 placeholder-slate-500 focus:outline-none leading-relaxed">' + escapeHtml(act.notesAndDelays || "") + '</textarea>' +
               '</div>' +
 
               '<div class="grid grid-cols-2 gap-2">' +
@@ -2964,6 +3032,7 @@
       const titleEl = document.getElementById("act-header-title-" + idx);
       const timesEl = document.getElementById("act-header-times-" + idx);
       const badgeEl = document.getElementById("act-note-badge-" + idx);
+      const locoBadgeEl = document.getElementById("act-loco-badge-" + idx);
 
       if (titleEl) {
         titleEl.textContent = ((act.trainNo ? act.trainNo + " " : "") + act.type + " " + act.location).trim();
@@ -2975,6 +3044,11 @@
           ? '<span class="text-sky-400 font-semibold ml-1.5">(' + escapeHtml(act.realStartTime || "--:--") + (act.type !== "LEASE" ? "&rarr;" + escapeHtml(act.realEndTime || "--:--") : "") + ')</span>'
           : "";
         timesEl.innerHTML = planned + real;
+      }
+      if (locoBadgeEl) {
+        const locosLabel = formatActivityLocosLabel(act);
+        locoBadgeEl.textContent = locosLabel ? ("Loco: " + locosLabel) : "";
+        locoBadgeEl.className = (locosLabel ? "inline-block" : "hidden") + " px-1.5 py-0.2 rounded bg-teal-500/20 border border-teal-500/40 text-[9px] font-mono font-bold text-teal-300 truncate max-w-[130px] shrink-0";
       }
       if (badgeEl) {
         const hasNote = Boolean(act.notesAndDelays && act.notesAndDelays.trim() !== "");
@@ -2993,6 +3067,8 @@
         endTime: "",
         realStartTime: "",
         realEndTime: "",
+        loco1: "",
+        loco2: "",
         notesAndDelays: ""
       });
       expandedActivityIdx = appState.activities.length - 1;
@@ -3257,6 +3333,8 @@
           endTime: t2,
           realStartTime: "",
           realEndTime: "",
+          loco1: "",
+          loco2: "",
           notesAndDelays: ""
         });
       }
@@ -3321,7 +3399,8 @@
         b1_case20_41_mf: "",
         b1_case20_42_percent: "",
         documentImageDataUrl: "",
-        documentName: ""
+        documentName: "",
+        addedOrder: null
       }, overrides || {}));
     }
 
@@ -3414,7 +3493,8 @@
       if (existingIdx >= 0) {
         appState.trains[existingIdx] = sample47800;
       } else {
-        appState.trains.unshift(sample47800);
+        sample47800.addedOrder = getNextDocOrder();
+        appState.trains.push(sample47800);
       }
       renderTrainBulletins();
       saveState();
@@ -3422,9 +3502,10 @@
     }
 
     function addEmptyTrainBulletin() {
-      appState.trains.unshift(createTrainObject({
+      appState.trains.push(createTrainObject({
         case1_BE: "",
-        case1_openCountries: ["BE"]
+        case1_openCountries: ["BE"],
+        addedOrder: getNextDocOrder()
       }));
       renderTrainBulletins();
       saveState();
@@ -3732,6 +3813,7 @@
               const pageLabel = pdf.numPages > 1 ? " (Page " + pageNum + "/" + pdf.numPages + ")" : "";
               appState.otherDocs.push({
                 id: "doc_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
+                addedOrder: getNextDocOrder(),
                 title: file.name.replace(/\.pdf$/i, "") + pageLabel,
                 notes: "",
                 imageDataUrl: canvas.toDataURL("image/jpeg", 0.82),
@@ -3743,6 +3825,7 @@
             const compressedDataUrl = await compressImageDataUrl(rawDataUrl, 1600, 0.82);
             appState.otherDocs.push({
               id: "doc_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
+              addedOrder: getNextDocOrder(),
               title: file.name.replace(/\.[a-z0-9]+$/i, ""),
               notes: "",
               imageDataUrl: compressedDataUrl,
@@ -3797,9 +3880,12 @@
         const card = document.createElement("div");
         card.className = "bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow space-y-3";
         card.innerHTML =
-          '<div class="flex items-center justify-between gap-2">' +
-            '<input type="text" value="' + escapeHtml(doc.title || "") + '" placeholder="Titre du document (ex: E285, Ordre \u00e9crit...)" oninput="updateOtherDoc(' + idx + ', \'title\', this.value)" class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs font-bold text-emerald-300 focus:border-emerald-400 focus:outline-none" />' +
-            '<button onclick="deleteOtherDoc(' + idx + ')" class="px-2.5 py-1.5 rounded-xl bg-rose-950/60 border border-rose-800 text-rose-300 text-xs font-bold">Supprimer</button>' +
+          '<div class="flex items-center justify-between gap-1.5">' +
+            '<span class="px-2 py-1 rounded-lg bg-slate-950 border border-slate-700 font-mono text-[10px] font-bold text-slate-400 shrink-0">#' + (idx + 1) + '</span>' +
+            '<input type="text" value="' + escapeHtml(doc.title || "") + '" placeholder="Titre du document (ex: E285, Ordre \u00e9crit...)" oninput="updateOtherDoc(' + idx + ', \'title\', this.value)" class="flex-1 min-w-0 bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs font-bold text-emerald-300 focus:border-emerald-400 focus:outline-none" />' +
+            '<button onclick="moveOtherDoc(' + idx + ', -1)" class="px-2 py-1.5 rounded-lg bg-slate-800 text-slate-300 text-xs font-bold shrink-0" title="Monter">&uarr;</button>' +
+            '<button onclick="moveOtherDoc(' + idx + ', 1)" class="px-2 py-1.5 rounded-lg bg-slate-800 text-slate-300 text-xs font-bold shrink-0" title="Descendre">&darr;</button>' +
+            '<button onclick="deleteOtherDoc(' + idx + ')" class="px-2.5 py-1.5 rounded-xl bg-rose-950/60 border border-rose-800 text-rose-300 text-xs font-bold shrink-0">&times;</button>' +
           '</div>' +
           '<div>' +
             '<textarea rows="2" placeholder="Note ou remarque sur ce document (optionnel)..." oninput="autoResizeTextarea(this); updateOtherDoc(' + idx + ', \'notes\', this.value)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:border-emerald-400 focus:outline-none">' + escapeHtml(doc.notes || "") + '</textarea>' +
@@ -3814,6 +3900,21 @@
     function updateOtherDoc(idx, field, val) {
       if (!appState.otherDocs[idx]) return;
       appState.otherDocs[idx][field] = val;
+      saveState();
+    }
+
+    function moveOtherDoc(idx, dir) {
+      const target = idx + dir;
+      if (target < 0 || target >= appState.otherDocs.length) return;
+      const a = appState.otherDocs[idx];
+      const b = appState.otherDocs[target];
+      const ordA = a.addedOrder;
+      const ordB = b.addedOrder;
+      a.addedOrder = ordB;
+      b.addedOrder = ordA;
+      appState.otherDocs[idx] = b;
+      appState.otherDocs[target] = a;
+      renderOtherDocs();
       saveState();
     }
 
@@ -4007,10 +4108,11 @@
       const file = event.target.files && event.target.files[0];
       if (!file) return;
       switchMobileTab("trains");
-      const newTrain = createTrainObject({ documentName: file.name, case1_BE: "" });
-      appState.trains.unshift(newTrain);
+      const newTrain = createTrainObject({ documentName: file.name, case1_BE: "", addedOrder: getNextDocOrder() });
+      appState.trains.push(newTrain);
+      const newIdx = appState.trains.length - 1;
       renderTrainBulletins();
-      await processTrainAttachment(0, file);
+      await processTrainAttachment(newIdx, file);
       event.target.value = "";
     }
 
@@ -4038,6 +4140,9 @@
 
         appState.trains[idx].documentImageDataUrl = imageDataUrl;
         appState.trains[idx].documentName = file.name;
+        if (typeof appState.trains[idx].addedOrder !== "number") {
+          appState.trains[idx].addedOrder = getNextDocOrder();
+        }
 
         if (localText) {
           const localData = parseRebuTextLocally(localText);
@@ -4500,11 +4605,13 @@
           imageDataUrl = res.dataUrl;
           appState.serviceSheetImages = res.driverPagesImages || [res.dataUrl];
           appState.serviceSheetName = file.name;
+          appState.serviceSheetAddedOrder = getNextDocOrder();
         } else {
           const rawUrl = await readFileAsDataUrl(file);
           imageDataUrl = await compressImageDataUrl(rawUrl, 1600, 0.82);
           appState.serviceSheetImages = [imageDataUrl];
           appState.serviceSheetName = file.name;
+          appState.serviceSheetAddedOrder = getNextDocOrder();
         }
 
         if (text) {
@@ -4547,11 +4654,13 @@
               if (Array.isArray(parsed.activities)) {
                 const currentList = getActiveOpTypes();
                 parsed.activities.forEach(a => {
-                  if (a.type && !currentList.includes(a.type)) currentList.push(a.type);
+                  if (a.type && String(a.type).toUpperCase() !== "BUNFAI1" && !currentList.includes(a.type)) currentList.push(a.type);
                 });
                 appState.activities = mergeSameTrainLegs(parsed.activities.map(a => ({
                   realStartTime: "",
                   realEndTime: "",
+                  loco1: "",
+                  loco2: "",
                   notesAndDelays: "",
                   ...a
                 })));
@@ -4715,8 +4824,12 @@
         const realStr = hasReal
           ? ' &nbsp;|&nbsp; <strong style="color: #0369a1;">R&eacute;el : ' + escapeHtml(a.realStartTime || "--:--") + (a.type !== "LEASE" ? " - " + escapeHtml(a.realEndTime || "--:--") : "") + '</strong>'
           : "";
+        const locosLabel = formatActivityLocosLabel(a);
+        const locosHtml = locosLabel
+          ? '<div style="margin-top: 2px; color: #0f766e; font-family: monospace; font-size: 11px; font-weight: 700;">Loco(s) : ' + escapeHtml(locosLabel) + '</div>'
+          : "";
         const notesFormatted = a.notesAndDelays
-          ? '<div style="margin-top: 4px; color: #b45309; font-family: sans-serif; font-size: 11px; font-weight: 600; white-space: pre-wrap;">' + escapeHtml(a.notesAndDelays) + '</div>'
+          ? '<div style="margin-top: 3px; color: #b45309; font-family: sans-serif; font-size: 11px; font-weight: 600; white-space: pre-wrap;">' + escapeHtml(a.notesAndDelays) + '</div>'
           : "";
 
         return '<div style="padding: 5px 0; border-bottom: 1px solid #e2e8f0; font-family: monospace; font-size: 12px;">' +
@@ -4724,20 +4837,10 @@
             '<span style="font-weight: bold; color: #0f172a;">' + escapeHtml(title) + '</span>' +
             '<span style="color: #334155;">' + plannedStr + realStr + '</span>' +
           '</div>' +
+          locosHtml +
           notesFormatted +
         '</div>';
       }).join("");
-
-      const serviceDocHtml = (appState.pdfIncludeServiceDoc && Array.isArray(appState.serviceSheetImages) && appState.serviceSheetImages.length > 0)
-        ? '<div style="margin-top: 12px; margin-bottom: 20px;">' +
-            '<div style="font-size: 12px; font-weight: bold; color: #0f172a; margin-bottom: 6px;">Fiche de prestation originale (' + escapeHtml(appState.driverName || "") + ') :</div>' +
-            appState.serviceSheetImages.map(imgUrl =>
-              '<div style="text-align: center; margin-bottom: 10px; page-break-inside: avoid;">' +
-                '<img src="' + imgUrl + '" style="max-width: 100%; max-height: 620px; border: 1px solid #cbd5e1;" />' +
-              '</div>'
-            ).join("") +
-          '</div>'
-        : "";
 
       const trainsHtml = appState.trains.map(rawTrain => {
         const t = normalizeTrainCase1(rawTrain);
@@ -4753,13 +4856,6 @@
         if (t.case11_d4) flags.push("<strong>[11] D4</strong>");
         if (t.case12_brakesCount) flags.push("<strong>[12] " + escapeHtml(t.case12_brakesType) + ":</strong> " + escapeHtml(t.case12_brakesCount));
         if (t.case13_damagedRear) flags.push("<strong>[13] V&eacute;hicule avari&eacute; en queue</strong>");
-
-        const rebuOriginalHtml = (appState.pdfIncludeRebuDoc && t.documentImageDataUrl)
-          ? '<div style="margin-top: 10px; text-align: center;">' +
-              '<div style="font-size: 10px; color: #475569; margin-bottom: 4px;">REBU original joint (' + escapeHtml(t.documentName || "Bulletin") + ')</div>' +
-              '<img src="' + t.documentImageDataUrl + '" style="max-width: 100%; max-height: 520px; border: 1px solid #cbd5e1;" />' +
-            '</div>'
-          : "";
 
         return '<div style="border: 2px solid #0f172a; border-radius: 8px; padding: 12px; margin-bottom: 14px; page-break-inside: avoid;">' +
           '<div style="display: flex; justify-content: space-between; border-bottom: 1px solid #cbd5e1; padding-bottom: 6px; margin-bottom: 8px;">' +
@@ -4804,18 +4900,66 @@
               ) : "") +
             '</tbody>' +
           '</table>' +
-          rebuOriginalHtml +
         '</div>';
       }).join("");
 
-      const otherDocsHtml = (appState.pdfIncludeOtherDocs && appState.otherDocs && appState.otherDocs.length > 0)
-        ? '<h2 style="font-size: 14px; font-weight: bold; text-transform: uppercase; background: #f1f5f9; padding: 6px 8px; margin-top: 20px; margin-bottom: 12px;">3. Autres Documents Joints</h2>' +
-          appState.otherDocs.map(d =>
+      // Classement strict de TOUTES les photos, PDF et pièces jointes dans l'ordre exact où ils ont été ajoutés dans l'application
+      const orderedAttachments = [];
+
+      if (appState.pdfIncludeServiceDoc && Array.isArray(appState.serviceSheetImages) && appState.serviceSheetImages.length > 0) {
+        const baseSrvOrder = (typeof appState.serviceSheetAddedOrder === "number") ? appState.serviceSheetAddedOrder : 0.5;
+        const totalSrvPages = appState.serviceSheetImages.length;
+        appState.serviceSheetImages.forEach((imgUrl, pIdx) => {
+          const pageSuffix = totalSrvPages > 1 ? (" — Page " + (pIdx + 1) + "/" + totalSrvPages) : "";
+          orderedAttachments.push({
+            order: baseSrvOrder,
+            subIdx: pIdx,
+            title: "Fiche de prestation originale (" + (appState.serviceSheetName || appState.driverName || "Document") + ")" + pageSuffix,
+            notes: "",
+            imageDataUrl: imgUrl
+          });
+        });
+      }
+
+      if (appState.pdfIncludeRebuDoc && Array.isArray(appState.trains)) {
+        appState.trains.forEach((rawTrain, tIdx) => {
+          const t = normalizeTrainCase1(rawTrain);
+          if (t && t.documentImageDataUrl) {
+            orderedAttachments.push({
+              order: (typeof t.addedOrder === "number") ? t.addedOrder : (1000 + tIdx),
+              subIdx: 0,
+              title: "REBU Train " + (t.case3_trainNo || ("#" + (tIdx + 1))) + " (" + (t.documentName || "Bulletin") + ")",
+              notes: "",
+              imageDataUrl: t.documentImageDataUrl
+            });
+          }
+        });
+      }
+
+      if (appState.pdfIncludeOtherDocs && Array.isArray(appState.otherDocs)) {
+        appState.otherDocs.forEach((d, dIdx) => {
+          if (d && d.imageDataUrl) {
+            orderedAttachments.push({
+              order: (typeof d.addedOrder === "number") ? d.addedOrder : (2000 + dIdx),
+              subIdx: 0,
+              title: d.title || "Document joint",
+              notes: d.notes || "",
+              imageDataUrl: d.imageDataUrl
+            });
+          }
+        });
+      }
+
+      orderedAttachments.sort((a, b) => (a.order - b.order) || (a.subIdx - b.subIdx));
+
+      const attachmentsHtml = orderedAttachments.length > 0
+        ? '<h2 style="font-size: 14px; font-weight: bold; text-transform: uppercase; background: #f1f5f9; padding: 6px 8px; margin-top: 20px; margin-bottom: 12px;">3. Documents, Photos &amp; PDF Joints (Ordre d&rsquo;ajout)</h2>' +
+          orderedAttachments.map((att, attIdx) =>
             '<div style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 16px; page-break-inside: avoid;">' +
-              '<div style="font-size: 13px; font-weight: bold; color: #0f172a; margin-bottom: 4px;">' + escapeHtml(d.title || "Document joint") + '</div>' +
-              (d.notes ? '<div style="font-size: 11px; color: #334155; margin-bottom: 8px; white-space: pre-wrap;">' + escapeHtml(d.notes) + '</div>' : "") +
+              '<div style="font-size: 13px; font-weight: bold; color: #0f172a; margin-bottom: 4px;">' + (attIdx + 1) + '. ' + escapeHtml(att.title) + '</div>' +
+              (att.notes ? '<div style="font-size: 11px; color: #334155; margin-bottom: 8px; white-space: pre-wrap;">' + escapeHtml(att.notes) + '</div>' : "") +
               '<div style="text-align: center;">' +
-                '<img src="' + d.imageDataUrl + '" style="max-width: 100%; max-height: 550px; border: 1px solid #e2e8f0;" />' +
+                '<img src="' + att.imageDataUrl + '" style="max-width: 100%; max-height: 580px; border: 1px solid #e2e8f0;" />' +
               '</div>' +
             '</div>'
           ).join("")
@@ -4835,10 +4979,9 @@
         buildPrintablePayrollBlock() +
         '<h2 style="font-size: 14px; font-weight: bold; text-transform: uppercase; background: #f1f5f9; padding: 6px 8px; margin-bottom: 8px;">1. Fiche de Prestation (Planifi&eacute; / R&eacute;el) &amp; Notes</h2>' +
         '<div style="margin-bottom: 16px;">' + actsHtml + '</div>' +
-        serviceDocHtml +
         '<h2 style="font-size: 14px; font-weight: bold; text-transform: uppercase; background: #f1f5f9; padding: 6px 8px; margin-bottom: 12px;">2. Synth&egrave;se des Bulletins de Freinage (REBU)</h2>' +
-        '<div>' + trainsHtml + '</div>' +
-        otherDocsHtml +
+        '<div>' + (trainsHtml || '<div style="font-size: 11px; color: #64748b; padding: 4px 0;">Aucun bulletin de freinage encod&eacute;.</div>') + '</div>' +
+        attachmentsHtml +
       '</div>';
     }
 
@@ -6358,9 +6501,8 @@
 
     async function loadHistoryEntry(idx) {
       if (!historyEntries[idx]) return;
-      const keptOpTypes = getActiveOpTypes();
       const loadedOpTypes = Array.isArray(historyEntries[idx].state.opTypes) ? historyEntries[idx].state.opTypes : [];
-      loadedOpTypes.forEach(t => { if (!keptOpTypes.includes(t)) keptOpTypes.push(t); });
+      const keptOpTypes = sanitizeOpTypesList(getActiveOpTypes().concat(loadedOpTypes));
 
       appState = {
         ...appState,
@@ -6403,10 +6545,7 @@
         try {
           const parsed = JSON.parse(reader.result);
           const loaded = (parsed && parsed._backupType === "RB_UNIFIED_BACKUP_V1" && parsed.appState) ? parsed.appState : parsed;
-          const keptOpTypes = getActiveOpTypes();
-          if (Array.isArray(loaded.opTypes)) {
-            loaded.opTypes.forEach(t => { if (!keptOpTypes.includes(t)) keptOpTypes.push(t); });
-          }
+          const keptOpTypes = sanitizeOpTypesList(getActiveOpTypes().concat(Array.isArray(loaded.opTypes) ? loaded.opTypes : []));
           appState = {
             ...appState,
             ...loaded,
